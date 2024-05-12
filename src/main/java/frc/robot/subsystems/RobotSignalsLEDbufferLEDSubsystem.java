@@ -6,13 +6,13 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.PeriodicTask;
 
-public class LEDSusbystem extends SubsystemBase {
+public class RobotSignalsLEDbufferLEDSubsystem  {
   private final AddressableLED strip;
   private final AddressableLEDBuffer buffer;
    
-  public LEDSusbystem(int length, int port) {
+  public RobotSignalsLEDbufferLEDSubsystem(int length, int port, PeriodicTask periodicTask) {
     // initialize the physical LED strip length
     strip = new AddressableLED(port);
     strip.setLength(length);
@@ -20,10 +20,9 @@ public class LEDSusbystem extends SubsystemBase {
     buffer = new AddressableLEDBuffer(length);
 
     // start the physical LED strip output
-    strip.start();
+    periodicTask.register(()->strip.start(), 0.1, 0.01);
   }
 
-  @Override
   public void periodic() {
     strip.setData(buffer);
   }

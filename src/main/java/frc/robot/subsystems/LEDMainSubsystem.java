@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class LEDMainSubsystem extends SubsystemBase {
   // private final AddressableLEDBufferView view;
 
-  public LEDMainSubsystem(LEDSusbystem led) {
+  public LEDMainSubsystem(RobotSignalsLEDbufferLEDSubsystem led) {
     // view = led.createView(...);
   }
 
