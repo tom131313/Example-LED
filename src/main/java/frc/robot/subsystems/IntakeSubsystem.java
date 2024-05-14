@@ -4,34 +4,32 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class IntakeSubsystem extends SubsystemBase {
   private final RobotSignals robotSignals;
-  private final Joystick joystick;
-  /**
-   * Indicates that intake has successfully acquired a game piece.
-   */
+  private final CommandXboxController operatorController;
   public final Trigger gamePieceAcquired = new Trigger(this::hasGamePieceAcquired);
 
-  public IntakeSubsystem(RobotSignals robotSignals, Joystick joystick) {
+  public IntakeSubsystem(RobotSignals robotSignals, CommandXboxController operatorController) {
     this.robotSignals = robotSignals;
-    this.joystick = joystick;
+    this.operatorController = operatorController;
     gamePieceAcquired.whileTrue(gamePieceAcquired());
   }
 
   public Command gamePieceAcquired() {
+    Color gamePieceAcquiredSignal = new Color(1., 1., 1.);
     return
-      robotSignals.Main.setSignal(new Color(1., 1., 1.)) // this command locks the Main subsystem only
+      robotSignals.Main.setSignal(gamePieceAcquiredSignal) // this command locks the robotSignals.Main subsystem only
         .ignoringDisable(true)
         .withName("MainGamePieceAcquiredSignal");
   }
 
   private boolean hasGamePieceAcquired() {
-    return joystick.getRawButton(2); // fake source for game piece acquired
+    return operatorController.getHID().getBButton(); // fake event source for game piece acquired
   }
 }

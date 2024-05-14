@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
@@ -12,28 +14,35 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.PeriodicTask;
 
+/*
+ * All Commands factories are "public."
+ * 
+ * All other methods are "private" to prevent other classes from forgetting to
+ * add requirements of these resources if creating commands from these methods.
+ */
+
 public class RobotSignals  {
   private final AddressableLED strip;
-  public final AddressableLEDBuffer bufferLED;
-  public final AddressableLEDBuffer bufferTop;
-  public final AddressableLEDBuffer bufferMain;
 
+  // layout by LED number of the single physical buffer
+  // into two logical segments (subsystems) called Main and Top
+  public final AddressableLEDBuffer bufferLED;
   private final int firstMainLED = 11; // inclusive
   private final int lastMainLED = 32; // inclusive
   private final int firstTopLED = 0; // inclusive
   private final int lastTopLED = 10; // inclusive
+
   public LEDTopSubsystem Top;
   public LEDMainSubsystem Main;
 
-  public RobotSignals(int length, int port, PeriodicTask periodicTask) {
+  public RobotSignals(int port, PeriodicTask periodicTask) {
+    int length = Math.max(lastTopLED, lastMainLED) - Math.min(firstTopLED, firstMainLED) + 1;
     // start updating the physical LED strip
     strip = new AddressableLED(port);
     strip.setLength(length);
     strip.start();
 
     bufferLED = new AddressableLEDBuffer(length);
-    bufferTop = new AddressableLEDBuffer(length);
-    bufferMain =  new AddressableLEDBuffer(length);
     Top = new LEDTopSubsystem();
     Main = new LEDMainSubsystem();
 
@@ -113,16 +122,16 @@ public class RobotSignals  {
           .withName("LedSetMainB");
     }
 
-    public Command setAutoSignal() {
+    public Command setSignal(Supplier<Color> color) {
       return
-        run(()->setMainSignal(new Color(0.4, 0.6, 0.2)))
-        .withName("MainAutoSignal");
+        run(()->setTopSignal(color.get()))
+          .ignoringDisable(true)
+          .withName("LedSetMainS");
     }
 
     public Command runPattern(LEDPattern pattern) {
       return run(() -> pattern.applyTo());
     }
-
   } // End Main LEDs subsystem
 
   /**
@@ -131,8 +140,9 @@ public class RobotSignals  {
   public class LEDTopSubsystem extends SubsystemBase {
 
     public LEDTopSubsystem() {
+      Color defaultColor = new Color(1., 0., 1.);
       setDefaultCommand(
-        Commands.run(()->setTopSignal(new Color(1., 0., 1.)), this)
+        Commands.run(()->setTopSignal(defaultColor), this)
           .ignoringDisable(true)
           .withName("LedDefaultTop"));
     }
@@ -151,18 +161,17 @@ public class RobotSignals  {
           .withName("LedSetTopB");
     }
 
-    public Command setAutoSignal() {
+    public Command setSignal(Supplier<Color> color) {
       return
-        run(()->setTopSignal(new Color(0.4, 0.6, 0.2)))
-        .withName("TopAutoSignal");
+        run(()->setTopSignal(color.get()))
+          .ignoringDisable(true)
+          .withName("LedSetTopS");
     }
 
     public Command runPattern(LEDPattern pattern) {
       return run(() -> pattern.applyTo());
     }
-
-  } // End Top LEDS subsystem
-
+  } // End Top LEDs subsystem
 }
 
 
@@ -171,7 +180,7 @@ public class RobotSignals  {
 
   import static edu.wpi.first.units.Units.Seconds;
   private final AddressableLEDBufferView view;
-  view = led.createView(...);  
+  view = led.createView(...);
   private final AddressableLEDBufferView view;
   view = led.createView(...);
   private final LEDPattern disabled = LEDPattern.solid(Color.kRed).breathe(Seconds.of(2));
@@ -185,7 +194,6 @@ public class RobotSignals  {
 
 
 C:\Users\RKT\frc\FRC2024\allwpilib-main\wpilibjExamples\src\main\java\edu\wpi\first\wpilibj\examples\addressableled\Main.java
-
     private void rainbow() {
     // For every pixel
     for (var i = 0; i < m_ledBuffer.getLength(); i++) {

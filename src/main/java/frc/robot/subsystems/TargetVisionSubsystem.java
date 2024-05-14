@@ -4,33 +4,37 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class TargetVisionSubsystem extends SubsystemBase {
   private final RobotSignals robotSignals;
-  private final Joystick joystick;
+  private final CommandXboxController operatorController;
   public final Trigger targetAcquired = new Trigger(this::canSeeTarget);
 
-  public TargetVisionSubsystem(RobotSignals robotSignals, Joystick joystick) {
+  public TargetVisionSubsystem(RobotSignals robotSignals, CommandXboxController operatorController) {
     this.robotSignals = robotSignals;
-    this.joystick = joystick;
+    this.operatorController = operatorController;
     targetAcquired.whileTrue(targetAcquired());
   }
   
   public Command targetAcquired() {
+    Color targetAcquiredSignal = new Color(0., 1., 0.);
     return
-      robotSignals.Top.setSignal(new Color(0., 1., 0.)) // this command locks the Top subsystem only
-        .ignoringDisable(true)
+      /*sequential*/
+      robotSignals.Top.setSignal(targetAcquiredSignal) // this command locks the robotSignals.Top subsystem only
+      /*sequential*/
+      .andThen(Commands.idle(this).withTimeout(0.)) // command created in this subsystem will lock this subsystem also
+      /*composite*/
         .withName("TopTargetAcquiredSignal")
-      .andThen(Commands.idle(this).withTimeout(0.)); // add if a lock on this subsystem is also required
+        .ignoringDisable(true); // ignore disable true must be here on the composite; on the first command doesn't do anything
   }
 
   private boolean canSeeTarget() {
-    return joystick.getRawButton(1); // fake source for can see target
+    return operatorController.getHID().getAButton(); // fake event source for can see target
   }
 }

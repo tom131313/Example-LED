@@ -4,35 +4,67 @@
 
 package frc.robot;
 
-import static edu.wpi.first.wpilibj2.command.Commands.parallel;
+import java.util.function.Supplier;
 
-import edu.wpi.first.wpilibj.Joystick;
+import static edu.wpi.first.wpilibj2.command.Commands.parallel;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.TargetVisionSubsystem;
 
 public class RobotContainer {
-  private final Joystick joystick = new Joystick(0);
+
+  boolean log = false;
+  int operatorControllerPort = 0; 
+  private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
   private final IntakeSubsystem intake;
   private final TargetVisionSubsystem vision;
 
   private final RobotSignals robotSignals;
 
   public RobotContainer(PeriodicTask periodicTask) {
-    robotSignals = new RobotSignals(64, 1, periodicTask);
-    intake = new IntakeSubsystem(robotSignals, joystick);
-    vision = new TargetVisionSubsystem(robotSignals, joystick);
+    robotSignals = new RobotSignals(1, periodicTask);
+    intake = new IntakeSubsystem(robotSignals, operatorController);
+    vision = new TargetVisionSubsystem(robotSignals, operatorController);
 
     configureBindings();
-    configureLogging();
+
+    if(log) configureLogging();
   }
 
-  private void configureBindings() {}
+  private void configureBindings() {
+    operatorController.x().debounce(1., DebounceType.kBoth)
+      .onTrue(robotSignals.Top.setSignal(colorWheel()));
+  }
+
+  private Supplier<Color> colorWheel() {
+    // produce a color based on the timer current seconds
+    return ()->Color.fromHSV((int)(Timer.getFPGATimestamp()%60.)*3, 200, 200);
+  }
+
+  public Command getAutonomousCommand() {
+    Color autoColor = new Color(0.4, 0.6, 0.2);
+    return
+      parallel // interrupting either of the two parallel commands with an external command interupts the group
+      (
+      /*parallel cmd*/
+        robotSignals.Top.setSignal(autoColor)
+          .withTimeout(6.) // this ends but the group continues and the default command is not activated here with or without the andThen command
+        .andThen(robotSignals.Top.setSignal(autoColor)),
+      /*parallel cmd*/
+        robotSignals.Main.setSignal(autoColor)
+      )
+      /*composite*/
+      .withName("AutoSignal");
+    }
 
   private void configureLogging() {
+    //_________________________________________________________________________________
     CommandScheduler.getInstance()
         .onCommandInitialize(
             command ->
@@ -41,7 +73,6 @@ public class RobotContainer {
             }
         );
     //_________________________________________________________________________________
-
     CommandScheduler.getInstance()
         .onCommandInterrupt(
             command ->
@@ -50,7 +81,6 @@ public class RobotContainer {
             }
         );
     //_________________________________________________________________________________
-
     CommandScheduler.getInstance()
         .onCommandFinish(
             command ->
@@ -59,7 +89,6 @@ public class RobotContainer {
             }
         );
     //_________________________________________________________________________________
-
     CommandScheduler.getInstance()
         .onCommandExecute( // this can generate a lot of events
             command ->
@@ -67,16 +96,8 @@ public class RobotContainer {
               System.out.println(/*command.getClass() + " " +*/ command.getName() + " executed " + command.getRequirements());
             }
         );
+    //_________________________________________________________________________________
   }
-
-  public Command getAutonomousCommand() {
-    return
-      parallel( // interrupting either command with an external command interupts the group
-        robotSignals.Top.setAutoSignal()
-          .withTimeout(6.) // this ends but the group continues and the default command is not activated here with or without the andThen command
-          .andThen(robotSignals.Top.setSignal(new Color(100., 100., 100.))),
-        robotSignals.Main.setAutoSignal());
-    }
 }
 
 
@@ -87,7 +108,6 @@ public class RobotContainer {
   private final LEDPattern defaultPattern = () -> (DriverStation.isDisabled() ? disabled : enabled).applyTo();
   private final LEDPattern blink = LEDPattern.solid(Color.kMagenta).blink(Seconds.of(0.2));
   private final LEDPattern orange = LEDPattern.solid(Color.kOrange);
-
 
   ledTop.setDefaultCommand(ledTop.runPattern(defaultPattern).ignoringDisable(true).withName("LedDefaultTop"));
   ledMain.setDefaultCommand(ledMain.runPattern(defaultPattern).ignoringDisable(true).withName("LedDefaultMain"));
