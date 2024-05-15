@@ -6,7 +6,8 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
-import edu.wpi.first.wpilibj.util.Color;
+// import edu.wpi.first.wpilibj.util.Color;
+import frc.robot.Color;
 
 /**
  * STUB INTERFACE FOR DEMO PURPOSES
