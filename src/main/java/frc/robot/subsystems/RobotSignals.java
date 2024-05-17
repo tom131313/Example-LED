@@ -66,9 +66,9 @@ public interface LEDPatternSupplier {
     strip.setLength(length);
     strip.start();
 
-    bufferLED = new AddressableLEDBuffer(length); // buffer for the all LEDs
+    bufferLED = new AddressableLEDBuffer(length); // buffer for all of the LEDs
 
-    // create the Three resources (subsystems) as views of the primary buffer
+    // create the three resources (subsystems) as views of the LED buffer
     Top = new LEDView(bufferLED.createView(firstTopLED, lastTopLED));
     Main = new LEDView(bufferLED.createView(firstMainLED, lastMainLED));
     EnableDisable = new LEDView(bufferLED.createView(firstEnableDisableLED, lastEnableDisableLED));
@@ -77,6 +77,7 @@ public interface LEDPatternSupplier {
   }
 
   private void update() {
+
     strip.setData(bufferLED);
   }
 
@@ -97,10 +98,11 @@ public interface LEDPatternSupplier {
      */
 
     /**
-     * Allow no more than one set of the view (resource, subsystem) default command
+     * Allow no more than one call to this set of the view (resource, subsystem) default command
      */
     @Override
     public void setDefaultCommand(Command def) {
+
       if (isDefaultSet) {
         throw new IllegalArgumentException("Default Command already set");
       }
@@ -117,10 +119,11 @@ public interface LEDPatternSupplier {
      * @return
      */
     public Command setSignal(LEDPattern pattern) {
+
       return
         run(()->pattern.applyTo(view))
           .ignoringDisable(true)
-          .withName("LedSetC");
+          .withName("LedSet");
     }
 
     /**
@@ -130,10 +133,11 @@ public interface LEDPatternSupplier {
      * @return
      */
     public Command setSignal(LEDPatternSupplier pattern) {
+      
       return
         run(()->pattern.get().applyTo(view))
           .ignoringDisable(true)
-          .withName("LedSetSC");
+          .withName("LedSetS");
     }
   } // End LEDView
 }
