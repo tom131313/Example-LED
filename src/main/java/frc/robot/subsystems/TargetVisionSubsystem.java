@@ -42,4 +42,8 @@ public class TargetVisionSubsystem extends SubsystemBase {
     
     return operatorController.getHID().getAButton(); // fake event source for can see target
   }
+
+  public void beforeCommands() {}
+
+  public void afterCommands() {}
 }

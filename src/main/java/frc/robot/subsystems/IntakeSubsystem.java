@@ -38,4 +38,8 @@ public class IntakeSubsystem extends SubsystemBase {
 
     return operatorController.getHID().getBButton(); // fake event source for game piece acquired
   }
+  
+  public void beforeCommands() {}
+
+  public void afterCommands() {}
 }

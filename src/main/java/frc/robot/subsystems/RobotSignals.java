@@ -10,7 +10,6 @@ import frc.robot.AddressableLED;
 import frc.robot.AddressableLEDBuffer;
 import frc.robot.AddressableLEDBufferView;
 import frc.robot.LEDPattern;
-import frc.robot.PeriodicTask;
 
 /*
  * All Commands factories are "public."
@@ -58,7 +57,7 @@ public interface LEDPatternSupplier {
   public LEDView Main;
   public LEDView EnableDisable;
 
-  public RobotSignals(int port, PeriodicTask periodicTask) {
+  public RobotSignals(int port) {
   
     // start updating the physical LED strip  
     int length = Math.max(Math.max(lastTopLED, lastMainLED), lastEnableDisableLED) + 1; // simplistic view of 3 segments - one starts at 0
@@ -72,13 +71,14 @@ public interface LEDPatternSupplier {
     Top = new LEDView(bufferLED.createView(firstTopLED, lastTopLED));
     Main = new LEDView(bufferLED.createView(firstMainLED, lastMainLED));
     EnableDisable = new LEDView(bufferLED.createView(firstEnableDisableLED, lastEnableDisableLED));
-    // start the periodic process to send (slowly) the buffer to the LEDs
-    periodicTask.register(this::update, 0.24, 0.019);
+
   }
 
-  private void update() {
+  public void beforeCommands() {}
 
-    strip.setData(bufferLED);
+  public void afterCommands() {
+
+    strip.setData(bufferLED); // run periodically to send the buffer to the LEDs
   }
 
   /**

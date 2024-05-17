@@ -28,9 +28,9 @@ public class RobotContainer {
 
   private final RobotSignals robotSignals;
 
-  public RobotContainer(PeriodicTask periodicTask) {
+  public RobotContainer() {
 
-    robotSignals = new RobotSignals(1, periodicTask);
+    robotSignals = new RobotSignals(1);
     intake = new IntakeSubsystem(robotSignals, operatorController);
     vision = new TargetVisionSubsystem(robotSignals, operatorController);
 
@@ -147,5 +147,27 @@ public class RobotContainer {
             }
         );
     //_________________________________________________________________________________
+  }
+
+  /**
+   * Run periodically before commands - read sensors
+   * Include all classes that have periodic inputs
+   */
+  public void beforeCommands() {
+
+    intake.beforeCommands();
+    vision.beforeCommands();
+    robotSignals.beforeCommands();
+  }
+
+  /**
+   * Run periodically after commands - write logs, dashboards, indicators
+   * Include all classes that have periodic outputs
+   */
+  public void afterCommands() {
+
+    intake.afterCommands();
+    vision.afterCommands();
+    robotSignals.afterCommands();
   }
 }
