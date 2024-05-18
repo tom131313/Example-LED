@@ -65,7 +65,6 @@ public class AchieveHueGoal {
         currentStateHue = MathUtil.clamp(currentStateHue + HueController.calculate(currentStateHue, hueSetpoint), minimumHue, maximumHue);
         LEDPattern persistentPatternDemo = LEDPattern.solid(Color.fromHSV((int)currentStateHue, 200, 200));// display state;
         robotSignals.setSignal(persistentPatternDemo).schedule(); // access to the LEDS is only by command so do it that way.
-        System.out.println(currentStateHue + " " + hueSetpoint);
     }
 
     /**
