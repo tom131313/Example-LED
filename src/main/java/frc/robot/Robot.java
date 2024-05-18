@@ -3,6 +3,31 @@
 // the WPILib BSD license file in the root directory of this project.
 
 /**
+ * Sample program that shows a variety of command based and programming
+ * "best practices" (we are hopeful).
+ * 
+ * Demonstration output is on a five sets of ten LEDs to show the program
+ * is operating; operator input is Xbox controller.
+ * 
+ * 1. Top
+ *     default blue;
+ *     auto mode dark green;
+ *     target vision orange (simulate target detected "A" button);
+ *     color wheel (initiated by "X" button)
+ * 2. Main
+ *     default cyan;
+ *     auto mode light green;
+ *     intake game piece acquired magenta fast blink
+ * 3. EnableDisable
+ *     enabled mode green
+ *     disabled mode red
+ * 4. History
+ *     random colors that don't repeat for awhile (initiated by "Y" button then self perpetuating)
+ * 5. Goal
+ *     colors on color wheel position showing controller converging on a color selected by Xbox right trigger
+ */
+
+/**
  * Example program demonstrating:
  * 
  * Splitting a common resource into two separately used resources (LEDs)
@@ -27,6 +52,7 @@
  * Supplier of dynamic LED pattern
  * Static LED pattern
  * Restrict Subsystem Default Command to none until set once at any time and then unchangeable
+ * Goal setting subsystem for a resource
  * 
  * There is some unused code and commented out code anticipating extensions to the WPILib addressable LED class.
  * This example program runs in real or simulated mode of the 2024 WPILib.
@@ -54,13 +80,9 @@
  */
 package frc.robot;
 
-import static edu.wpi.first.wpilibj2.command.Commands.print;
-
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class Robot extends TimedRobot {
 

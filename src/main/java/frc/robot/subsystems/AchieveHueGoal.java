@@ -20,6 +20,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Color;
 import frc.robot.LEDPattern;
 import frc.robot.subsystems.RobotSignals.LEDView;
@@ -46,13 +47,14 @@ public class AchieveHueGoal {
         this.robotSignals = robotSignals;
     }
 
-    // Example of methods that the system will require to put here.
+    // Example of methods and triggers that the system will require are put here.
     //
-    // Methods that change the system should be "private" and methods
-    // that ijquire about the system should be "publc".
+    // Methods that change the system should be "private".
+    // Methods and triggers that inquire about the system should be "publc".
 
-    // this particular method is an example only and isn't used for the demonstration
-    public boolean isAtHueGoal() {
+    // this particular state inquiry is an example only and isn't used for the demonstration
+    public final Trigger atHueGoal= new Trigger(this::isAtHueGoal);
+    private boolean isAtHueGoal() {
 
         return HueController.atSetpoint();
     }
