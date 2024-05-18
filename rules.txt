@@ -1,0 +1,33 @@
+Commands
+Should not be manually scheduled
+Instead, bind commands to Triggers, or compose them in command groups.
+Should not be stored as instances/members
+It is generally unsafe to reuse single command instances in multiple places, so there’s typically no reason to keep a reference to a command instance in the user code. Commands should be composed or bound immediately after creation, from which point their lifecycle is managed by the library.
+Should be returned from factory functions
+Since we cannot reuse individual command instances, “factory functions” are the natural way to represent a command that we will want to bind or compose multiple times; each time the factory is called we get a new command instance.
+Do not put “factory” in the name of your factory functions. Users can tell it is a factory from context and the type signature.
+The new keyword is a big contributor to code clutter, and should only appear in code at the level where we actually care about the heap allocation occurring. We typically don’t care that creating and binding a command involves allocations, because this is done at startup and has no real performance implications for the code. Factory functions move the new clutter to the Subsystem layer, making the declarative binding much more readable.
+Should not be composed too deeply across subsystems
+Command groups are a tight coupling of commands. Command groups obey a requirement algebra - the requirements of a command group are the union of the requirements of its component commands. This is a very rigid rule that only makes sense for actions that are very closely interconnected, because every Subsystem involved in a command group is unable to perform other actions (including default commands) for the entirety of the duration of the command group.
+The asProxy decorator can help loosen an overly-rigid Command group - but this can quickly get verbose and has some potentially surprising behaviors if not used carefully.
+For loose coupling of Commands, use Trigger instead.
+One command can indirectly lead to another by causing a change in robot state tracked by a Trigger to which the second command is bound, rather than being composed in a command group with the second command. In this case, even if the two commands occur on different subsystems, each subsystem will only be reserved while it is actually performing an action.
+
+Subsystems
+Should only expose interactions with protected hardware/state through Command factories
+The point of the Subsystem class is to define a “block” or “mutex” for sensitive state (often - but not always - representing hardware resources like motors) that needs to be guarded against simultaneous access by concurrent code (Commands). If it is possible for code outside the subsystem to access this state outside of a command, then the command scheduler is unable to guarantee that it is not being simultaneously accessed.
+In other words: the scheduler can prevent commands from fighting with each other over protected state, but it cannot prevent commands from fighting with non-command code. Accordingly, non-command code should only be able to touch protected state from inside the subsystem, where the state lives. Any access to the state from outside of the subsystem is a potential for a resource contention error.
+The best way to avoid unexpected interactions is to make it impossible for them to happen.
+Should expose boolean state to other subsystems as public final Trigger instance members
+This makes it very easy to configure loose coupling rather than tight coupling between subsystems. This often works more nicely with the requirement algebra than the tight coupling of command groups.
+Should not receive injected references to other subsystems
+Instead, cross-subsystem coordination should occur in the scope where all of the involved subsystems live.
+
+Triggers
+Should be used to represent general robot states that can/should trigger commands
+While the most common use of the Trigger class is to represent button inputs, the class itself is meant to represent arbitrary triggering conditions for commands. In addition to driver inputs, these can include any boolean condition you can think of: sensor readings, game states etc.
+Should be used to coordinate cross-subsystem interactions when command compositions would be too rigid
+As mentioned above, the command group requirement algebra means that command groups block all involved subsystems for the entire duration of the command group. This can be confusing and interact poorly with default commands if a command group grows too large.
+Instead, Trigger allows us to trigger one command upon a state change caused by another, giving a “command group-like” flow without actually defining a command group. This “loose coupling” is extremely expressive.
+Should live as a public final field in the narrowest scope that has access to the relevant state
+There is no reason to hide a Trigger behind an accessor, since it is just a wrapper around a (void) -> boolean function. Declaring Trigger instances as public final members leads to very ergonomic and easy-to-read code.

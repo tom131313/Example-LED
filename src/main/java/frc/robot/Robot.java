@@ -54,9 +54,13 @@
  */
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.print;
+
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class Robot extends TimedRobot {
 

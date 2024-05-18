@@ -52,15 +52,25 @@ public interface LEDPatternSupplier {
   private final int lastTopLED = 10; // inclusive
   private final int firstEnableDisableLED = 33; // inclusive
   private final int lastEnableDisableLED = 40; // inclusive
+  private final int firstHistoryDemoLED = 41; // inclusive
+  private final int lastHistoryDemoLED = 50; // inclusive
   
   public LEDView Top;
   public LEDView Main;
   public LEDView EnableDisable;
+  public LEDView HistoryDemo;
 
   public RobotSignals(int port) {
   
-    // start updating the physical LED strip  
-    int length = Math.max(Math.max(lastTopLED, lastMainLED), lastEnableDisableLED) + 1; // simplistic view of 3 segments - one starts at 0
+    // start updating the physical LED strip 
+
+    //  CAUTION
+    //  CAUTION
+    //  CAUTION
+    //  CAUTION
+    // update this length for each view defined
+    // 
+    int length = Math.max(Math.max(Math.max(lastTopLED, lastMainLED), lastEnableDisableLED), lastHistoryDemoLED) + 1; // simplistic view of 3 segments - one starts at 0
     strip = new AddressableLED(port);
     strip.setLength(length);
     strip.start();
@@ -71,7 +81,7 @@ public interface LEDPatternSupplier {
     Top = new LEDView(bufferLED.createView(firstTopLED, lastTopLED));
     Main = new LEDView(bufferLED.createView(firstMainLED, lastMainLED));
     EnableDisable = new LEDView(bufferLED.createView(firstEnableDisableLED, lastEnableDisableLED));
-
+    HistoryDemo = new LEDView(bufferLED.createView(firstHistoryDemoLED, lastHistoryDemoLED));
   }
 
   public void beforeCommands() {}
@@ -102,6 +112,11 @@ public interface LEDPatternSupplier {
      */
     @Override
     public void setDefaultCommand(Command def) {
+
+      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+      StackTraceElement element = stackTrace[2];
+      System.out.println("I was called by a method named: " + element.getMethodName());
+      System.out.println("That method is in class: " + element.getClassName());
 
       if (isDefaultSet) {
         throw new IllegalArgumentException("Default Command already set");

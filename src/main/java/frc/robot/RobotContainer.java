@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subsystems.HistoryFSM;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.RobotSignals.LEDPatternSupplier;
@@ -25,14 +26,16 @@ public class RobotContainer {
   private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
   private final IntakeSubsystem intake;
   private final TargetVisionSubsystem vision;
+  private final HistoryFSM historyFSM;
 
   private final RobotSignals robotSignals;
 
   public RobotContainer() {
 
     robotSignals = new RobotSignals(1);
-    intake = new IntakeSubsystem(robotSignals, operatorController);
-    vision = new TargetVisionSubsystem(robotSignals, operatorController);
+    intake = new IntakeSubsystem(robotSignals.Main, operatorController);
+    vision = new TargetVisionSubsystem(robotSignals.Top, operatorController);
+    historyFSM = new HistoryFSM(robotSignals.HistoryDemo, operatorController);
 
     configureBindings();
     configureDefaultCommands();
@@ -109,6 +112,17 @@ public class RobotContainer {
       // command ends here so default command runs if no subsequant command runs for the subsystem
     }
 
+    /*
+     * vision target
+     * intake
+     *  release vision target
+     *  intake
+     * 
+     */
+
+
+
+
   /**
    * Configure Command logging
    */
@@ -158,6 +172,7 @@ public class RobotContainer {
     intake.beforeCommands();
     vision.beforeCommands();
     robotSignals.beforeCommands();
+    historyFSM.beforeCommands();
   }
 
   /**
@@ -169,5 +184,6 @@ public class RobotContainer {
     intake.afterCommands();
     vision.afterCommands();
     robotSignals.afterCommands();
+    historyFSM.afterCommands();
   }
 }
