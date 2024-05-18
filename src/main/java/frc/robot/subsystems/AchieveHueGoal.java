@@ -36,14 +36,14 @@ public class AchieveHueGoal {
     private double maximumHue = 180.;
     private double hueSetpoint = 0.;
     private double currentStateHue = 0.;
-    private DoubleSupplier defaultHueGoal;
+    // private DoubleSupplier defaultHueGoal;
     
     private LEDView robotSignals; // where the output is displayed
 
     private HueGoal hueGoal = new HueGoal(); // subsystem protected goal
 
-    public AchieveHueGoal(LEDView robotSignals, DoubleSupplier defaultHueGoal) {
-        this.defaultHueGoal = defaultHueGoal;
+    public AchieveHueGoal(LEDView robotSignals/*, DoubleSupplier defaultHueGoal*/) {
+        // this.defaultHueGoal = defaultHueGoal;
         this.robotSignals = robotSignals;
     }
 
@@ -77,9 +77,19 @@ public class AchieveHueGoal {
 
         private HueGoal() {
         
-            Command defaultCommand = 
-                    Commands.run( ()-> hueSetpoint = defaultHueGoal.getAsDouble() , this);
-            setDefaultCommand(defaultCommand);
+            // Command defaultCommand = 
+            //         Commands.run( ()-> hueSetpoint = defaultHueGoal.getAsDouble() , this);
+            // setDefaultCommand(defaultCommand);
+        }
+
+        /**
+         * Disallow default command
+         * This prevents accidentally assuming the default command will run in composite commands which it wont.
+         */
+        @Override
+        public void setDefaultCommand(Command def) {
+
+            throw new IllegalArgumentException("Default Command not allowed");
         }
 
         /**
