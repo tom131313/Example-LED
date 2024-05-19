@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.AchieveHueGoal;
 import frc.robot.subsystems.HistoryFSM;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -57,6 +58,10 @@ public class RobotContainer {
 
     operatorController.x().debounce(0.03, DebounceType.kBoth)
       .onTrue(robotSignals.Top.setSignal(colorWheel()));
+
+    
+    final Trigger startAcceptingSetpoints = new Trigger(operatorController.rightTrigger(0.05))
+      .onTrue(achieveHueGoal.hueGoal.setHueGoal(hueGoal));
   }
 
   /**
