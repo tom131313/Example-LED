@@ -69,9 +69,17 @@
  */
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.print;
+import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
+
+import java.util.function.BooleanSupplier;
+
+import edu.wpi.first.util.concurrent.Event;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.InternalButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class Robot extends TimedRobot {
 
@@ -127,12 +135,48 @@ public class Robot extends TimedRobot {
     }
   }
 
+    // boolean test1Done = false;
+    // boolean test2Done = false;
+    // boolean test3Done = false;
+
+    // Command test1 = print("testing 1").finallyDo(()->test1Done = true);
+    // Command test2 = print("testing 2").finallyDo(()->test2Done = true);
+    // Command test3 = print("testing 3").finallyDo(()->test3Done = true);
+    // Command test4 = print("testing 4");
+
+    // Trigger afterTest1 = new Trigger(()->test1Done).onTrue(runOnce(()->test1Done = false).andThen(test2));
+    // Trigger afterTest2 = new Trigger(()->test2Done).onTrue(runOnce(()->test2Done = false).andThen(test3));
+    // Trigger afterTest3 = new Trigger(()->test3Done).onTrue(runOnce(()->test3Done = false).andThen(test4));
+
+    Command test1 = print("testing 1");
+    Command test2 = print("testing 2");
+    Command test3 = print("testing 3");
+    Command test4 = print("testing 4");
+
   @Override
   public void teleopInit() { // commands running from another mode haven't been cancelled directly except the one below
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+  Command
+  test = LooselyCoupledSequentialCommandGroup.sequence(
+      test1,
+      test2,
+      test3,
+      test4,
+      runOnce(()->CommandScheduler.getInstance().removeComposedCommand(test1)),
+      test1);
+  test.schedule();
+
+/*
+testing 1
+testing 2
+testing 3
+testing 4
+testing 1
+*/
   }
 
   @Override

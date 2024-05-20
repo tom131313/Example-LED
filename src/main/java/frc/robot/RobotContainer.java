@@ -50,7 +50,7 @@ public class RobotContainer {
 
     if(logCommands) configureLogging();
   }
-
+   
   /**
    * configure driver and operator controllers buttons
    */
@@ -59,7 +59,6 @@ public class RobotContainer {
     operatorController.x().debounce(0.03, DebounceType.kBoth)
       .onTrue(robotSignals.Top.setSignal(colorWheel()));
 
-    
     final Trigger startAcceptingSetpoints = new Trigger(operatorController.rightTrigger(0.05))
       .onTrue(achieveHueGoal.hueGoal.setHueGoal(hueGoal));
   }
@@ -77,18 +76,19 @@ public class RobotContainer {
   }
 
   /**
-   * Configure the LED Signal Views Default Commands
+   * Configure some of the Default Commands
    * 
    * DANGER DANGER DANGER
    * Default commands are not run in composed commands.
    * Suggest not using default commands to prevent assuming they run
    * (Example included on how to disable the setDefaultCommand)
-   * If using the default command sugegst not setting it more than once
+   * If using the default command suggest not setting it more than once
    * to prevent confusion on which one is set.
    * (Example included on how to prevent more than one setting of the default command)
    */
   private void configureDefaultCommands() {
 
+    //    Configure the LED Signal Views Default Commands
     final LEDPattern TopDefaultSignal = LEDPattern.solid(new Color(0., 0., 1.));
     final LEDPattern MainDefaultSignal = LEDPattern.solid(new Color(0., 1., 1.));
     final LEDPattern disabled = LEDPattern.solid(Color.kRed).breathe(Seconds.of(2));
@@ -131,17 +131,6 @@ public class RobotContainer {
         .withName("AutoSignal");
       // command ends here so default command runs if no subsequant command runs for the subsystem
     }
-
-    /*
-     * vision target
-     * intake
-     *  release vision target
-     *  intake
-     * 
-     */
-
-
-
 
   /**
    * Configure Command logging
