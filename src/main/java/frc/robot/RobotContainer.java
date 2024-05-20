@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.AchieveHueGoal;
@@ -170,6 +171,25 @@ public class RobotContainer {
             }
         );
     //_________________________________________________________________________________
+  }
+
+  /**
+   * Run a group of commands sewquentially.
+   * 
+   * <p>Each component command is run individually by proxy and thus the requirements
+   * of each command are only for the duration of that command and are not required
+   * for the entire group process.
+   *
+   * @param components - list of commands to run sequentially
+   * 
+   * @return the loosely grouped commands to run
+   */
+  static public Command looseSequence(Command... components) {
+    SequentialCommandGroup sequence = new SequentialCommandGroup();
+    for (Command component : components) {
+      sequence.addCommands(component.asProxy());
+    }
+    return sequence;
   }
 
   /**
