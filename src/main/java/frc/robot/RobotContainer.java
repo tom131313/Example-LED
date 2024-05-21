@@ -48,7 +48,7 @@ public class RobotContainer {
     vision = new TargetVisionSubsystem(robotSignals.Top, operatorController);
     historyFSM = new HistoryFSM(robotSignals.HistoryDemo, operatorController);
     achieveHueGoal = new AchieveHueGoal(robotSignals.AchieveHueGoal/*, hueGoal*/);
-
+ 
     configureBindings();
 
     configureDefaultCommands();
@@ -200,6 +200,12 @@ public class RobotContainer {
       sequentialTest.setTest(4), waitSeconds(0.08), sequentialTest.setTest(5), waitSeconds(0.08),
        sequentialTest.setTest(6));
 
+  private boolean runBeforeAfterSequentialTest = true;
+  public final void unregisterSequentialTest() {
+    CommandScheduler.getInstance().unregisterSubsystem(sequentialTest); // no periodic and no default command otherwise hard to tell it stopped
+    runBeforeAfterSequentialTest = false; // so we need our own flag to indicate stopped
+  }
+
   // to be included in an upcoming WPILib release
   /**
    * Runs a group of commands in series, one after the other.
@@ -254,7 +260,9 @@ public class RobotContainer {
     robotSignals.beforeCommands();
     historyFSM.beforeCommands();
     achieveHueGoal.beforeCommands();
-    sequentialTest.beforeCommands();
+    if (runBeforeAfterSequentialTest) {
+      sequentialTest.beforeCommands();
+    }
   }
 
   /**
@@ -271,6 +279,8 @@ public class RobotContainer {
     robotSignals.afterCommands();
     historyFSM.afterCommands();
     achieveHueGoal.afterCommands();
-    sequentialTest.afterCommands();
+    if (runBeforeAfterSequentialTest) {
+      sequentialTest.afterCommands();
+    }
   }
 }

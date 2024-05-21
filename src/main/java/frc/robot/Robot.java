@@ -165,6 +165,7 @@ public class Robot extends TimedRobot {
     count++;
     if (count == 500) m_robotContainer.testSeparatedSequence.schedule();
     if (count == 600) m_robotContainer.testSequence.schedule();
+    if (count == 700) m_robotContainer.unregisterSequentialTest();
   }
 
   @Override
