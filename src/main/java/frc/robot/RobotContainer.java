@@ -84,10 +84,18 @@ public class RobotContainer {
    * Configure some of the Default Commands
    * 
    * DANGER DANGER DANGER
+   * 
    * Default commands are not run in composed commands.
-   * Suggest not using default commands to prevent assuming they run
+   * 
+   * Suggest not using default commands to prevent assuming they run.
    * (Example included on how to disable the setDefaultCommand)
-   * If using the default command suggest not setting it more than once
+   * 
+   * Alternatively use the "separatedSequence" method that allows commands to
+   * release their resources upon completion instead of waiting for completion
+   * of the entire command composition then the default command runs upon
+   * completion of each individual command. (Example included)
+   * 
+   * If using the default command, suggest not setting it more than once
    * to prevent confusion on which one is set.
    * (Example included on how to prevent more than one setting of the default command)
    */
@@ -182,8 +190,8 @@ public class RobotContainer {
   // Standard behavior is all subsystems are locked for the duration of the group execution and
   // no default commands even if the subsystem isn't continuous active.
 
-  public final Command testLooseSequence =
-    looseSequence(
+  public final Command testSeparatedSequence =
+    separatedSequence(
       sequentialTest.setTest(1), waitSeconds(0.08), sequentialTest.setTest(2), waitSeconds(0.08),
        sequentialTest.setTest(3));
 
@@ -192,28 +200,52 @@ public class RobotContainer {
       sequentialTest.setTest(4), waitSeconds(0.08), sequentialTest.setTest(5), waitSeconds(0.08),
        sequentialTest.setTest(6));
 
+  // to be included in an upcoming WPILib release
   /**
    * Runs a group of commands in series, one after the other.
    *
-   * <p>Each command is run individually by proxy. The requirements
-   * of each command are only for the duration of that command and
-   * are not required for the entire group process.
-   
+   * <p>Each command is run individually by proxy. The requirements of
+   * each command are reserved only for the duration of that command and
+   * are not reserved for the entire group process.
+   *
    * @param commands the commands to include
    * @return the command group
    * @see SequentialCommandGroup
    */
-  public static Command looseSequence(Command... commands) {
-    SequentialCommandGroup sequence = new SequentialCommandGroup();
-    for (Command command : commands) {
-      sequence.addCommands(command.asProxy());
+  public static Command separatedSequence(Command... commands) {
+    return sequence(proxyAll(commands));
+  }
+
+  // to be included in an upcoming WPILib release
+  /**
+   * Maps an array of commands by proxying every element using {@link Command#asProxy()}.
+   *
+   * <p>This is useful to ensure that default commands of subsystems withing a command group are
+   * still triggered despite command groups requiring the union of their members' requirements
+   *
+   * <p>Example usage for creating an auto for a robot that has a drivetrain and arm:
+   *
+   * <pre>
+   * {@code var auto = sequence(proxyAll(drive.move(), arm.score()));}
+   * </pre>
+   *
+   * @param commands an array of commands
+   * @return an array of proxied commands
+   */
+  public static Command[] proxyAll(Command... commands) {
+    Command[] out = new Command[commands.length];
+    for (int i = 0; i < commands.length; i++) {
+      out[i] = commands[i].asProxy();
     }
-    return sequence;
+    return out;
   }
 
   /**
    * Run periodically before commands are run - read sensors
    * Include all classes that have periodic inputs
+   *
+   * There are clever ways to register classes so they are automatically
+   * included in a list but this example is simplistic - remember to type them in.
    */
   public void beforeCommands() {
 
@@ -228,6 +260,9 @@ public class RobotContainer {
   /**
    * Run periodically after commands are run - write logs, dashboards, indicators
    * Include all classes that have periodic outputs
+   * 
+   * There are clever ways to register classes so they are automatically
+   * included in a list but this example is simplistic - remember to type them in.
    */
   public void afterCommands() {
 
@@ -239,120 +274,3 @@ public class RobotContainer {
     sequentialTest.afterCommands();
   }
 }
-/* sequential group test output
-...
-default command
-default command
-default command
-default command
-default command
-testing 1
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-testing 2
-default command
-default command
-default command
-default command
-default command
-default command
-testing 3
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-default command
-testing 4
-testing 5
-testing 6
-default command
-default command
-default command
-default command
-default command
-...
- */

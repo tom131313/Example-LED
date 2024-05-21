@@ -163,7 +163,7 @@ public class Robot extends TimedRobot {
     // that their requirements are not required for the entire group process
     // and the default command will run.
     count++;
-    if (count == 500) m_robotContainer.testLooseSequence.schedule();
+    if (count == 500) m_robotContainer.testSeparatedSequence.schedule();
     if (count == 600) m_robotContainer.testSequence.schedule();
   }
 
