@@ -16,15 +16,14 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.AchieveHueGoal;
+import frc.robot.subsystems.GroupedUngroupedTest;
 import frc.robot.subsystems.HistoryFSM;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.RobotSignals.LEDPatternSupplier;
-import frc.robot.subsystems.SequentialTest;
 import frc.robot.subsystems.TargetVisionSubsystem;
 
 public class RobotContainer {
@@ -33,13 +32,14 @@ public class RobotContainer {
   private int operatorControllerPort = 0; 
   private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
   private DoubleSupplier hueGoal = ()->operatorController.getRightTriggerAxis() * 180.; // scale joystick 0 to 1 to computer color wheel hue 0 to 180
+  
+  // define all the subsystems
   private final IntakeSubsystem intake;
   private final TargetVisionSubsystem vision;
   private final HistoryFSM historyFSM;
   private final AchieveHueGoal achieveHueGoal;
-
-  private final RobotSignals robotSignals;
-  private final SequentialTest sequentialTest = new SequentialTest();
+  private final GroupedUngroupedTest groupedUngroupedTest = new GroupedUngroupedTest();
+  private final RobotSignals robotSignals; // container for all the LEDView subsystems
 
   public RobotContainer() {
 
@@ -57,7 +57,8 @@ public class RobotContainer {
   }
    
   /**
-   * configure driver and operator controllers buttons
+   * configure driver and operator controllers' buttons
+   * (if they haven't been defined)
    */
     private void configureBindings() {
 
@@ -101,7 +102,6 @@ public class RobotContainer {
    */
   private void configureDefaultCommands() {
 
-    //    Configure the LED Signal Views Default Commands
     final LEDPattern TopDefaultSignal = LEDPattern.solid(new Color(0., 0., 1.));
     final LEDPattern MainDefaultSignal = LEDPattern.solid(new Color(0., 1., 1.));
     final LEDPattern disabled = LEDPattern.solid(Color.kRed).breathe(Seconds.of(2));
@@ -190,35 +190,37 @@ public class RobotContainer {
   // Standard behavior is all subsystems are locked for the duration of the group execution and
   // no default commands even if the subsystem isn't continuous active.
 
-  public final Command testSeparatedSequence =
-    separatedSequence(
-      sequentialTest.setTest(1), waitSeconds(0.08), sequentialTest.setTest(2), waitSeconds(0.08),
-       sequentialTest.setTest(3));
+  public final Command testUngroupedSequence =
+    ungroupedSequence(
+      groupedUngroupedTest.setTest(1), waitSeconds(0.08), groupedUngroupedTest.setTest(2), waitSeconds(0.08),
+       groupedUngroupedTest.setTest(3));
 
   public final Command testSequence =
     sequence(
-      sequentialTest.setTest(4), waitSeconds(0.08), sequentialTest.setTest(5), waitSeconds(0.08),
-       sequentialTest.setTest(6));
+      groupedUngroupedTest.setTest(4), waitSeconds(0.08), groupedUngroupedTest.setTest(5), waitSeconds(0.08),
+       groupedUngroupedTest.setTest(6));
 
-  private boolean runBeforeAfterSequentialTest = true;
-  public final void unregisterSequentialTest() {
-    CommandScheduler.getInstance().unregisterSubsystem(sequentialTest); // no periodic and no default command otherwise hard to tell it stopped
-    runBeforeAfterSequentialTest = false; // so we need our own flag to indicate stopped
+  private boolean runBeforeAfterGroupedUngroupedTest = true;
+
+  public final void unregisterGroupedUngroupedTest() {
+    CommandScheduler.getInstance().unregisterSubsystem(groupedUngroupedTest); // no periodic and no default command otherwise hard to tell it stopped
+    runBeforeAfterGroupedUngroupedTest = false; // so we need our own flag to indicate stopped
   }
 
   // to be included in an upcoming WPILib release
   /**
-   * Runs a group of commands in series, one after the other.
+   * Runs individual commands in a series without grouped sequence behavior.
    *
-   * <p>Each command is run individually by proxy. The requirements of
+   * <p>Each command is run independently by proxy. The requirements of
    * each command are reserved only for the duration of that command and
-   * are not reserved for the entire group process.
+   * are not reserved for an entire group process as they are in a
+   * grouped sequence.
    *
-   * @param commands the commands to include
-   * @return the command group
-   * @see SequentialCommandGroup
+   * @param commands the commands to include in the series
+   * @return the command to run the series of commands
+   * @see #sequence() use sequence() to invoke group sequence behavior
    */
-  public static Command separatedSequence(Command... commands) {
+  public static Command ungroupedSequence(Command... commands) {
     return sequence(proxyAll(commands));
   }
 
@@ -260,8 +262,8 @@ public class RobotContainer {
     robotSignals.beforeCommands();
     historyFSM.beforeCommands();
     achieveHueGoal.beforeCommands();
-    if (runBeforeAfterSequentialTest) {
-      sequentialTest.beforeCommands();
+    if (runBeforeAfterGroupedUngroupedTest) {
+      groupedUngroupedTest.beforeCommands();
     }
   }
 
@@ -279,8 +281,8 @@ public class RobotContainer {
     robotSignals.afterCommands();
     historyFSM.afterCommands();
     achieveHueGoal.afterCommands();
-    if (runBeforeAfterSequentialTest) {
-      sequentialTest.afterCommands();
+    if (runBeforeAfterGroupedUngroupedTest) {
+      groupedUngroupedTest.afterCommands();
     }
   }
 }

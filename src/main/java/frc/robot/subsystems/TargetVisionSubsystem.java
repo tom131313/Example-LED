@@ -4,6 +4,11 @@
 
 package frc.robot.subsystems;
 
+/*
+ * Example subsystem that acquires a target (simulated fake boolean by pressing a button).
+ * A signal is displayed to indicate the status of the Target Vision (acquired target or not).
+ */
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -41,7 +46,7 @@ public class TargetVisionSubsystem extends SubsystemBase {
 
   private boolean canSeeTarget() {
     
-    return operatorController.getHID().getAButton(); // fake event source for can see target
+    return operatorController.getHID().getAButton(); // fake event source for target acquired
   }
 
   /**

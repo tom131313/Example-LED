@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class SequentialTest extends SubsystemBase {
+public class GroupedUngroupedTest extends SubsystemBase {
 
 /*
  * All Commands factories are "public."
@@ -12,26 +12,28 @@ public class SequentialTest extends SubsystemBase {
  * add requirements of these resources if creating commands from these methods.
  */
 
-    public SequentialTest () {
+    public GroupedUngroupedTest () {
 
       setDefaultCommand(defaultCommand);
     }
 
     // variables used to produce the periodic output
-    private String output = "";
-    private String outputPrevious = "";
-    private int repeatedOutputCount = 0;
-    private final int repeatedOutputLimit = 250; // 5 seconds worth at 50 Hz loop frequency
+    private String output = ""; // set for what to output
+    private String outputPrevious = ""; // previous output setting used to suppress duplicates
+    private int repeatedOutputCount = 0; // number of duplicates
+    private static final int repeatedOutputLimit = 250; // 5 seconds worth at 50 Hz loop frequency
 
     public void beforeCommands() {}
 
     public void afterCommands() {
       { // process "output" variable
+    // processing in periodic I/O should be kept to a minimum to get the best consistent set
+    // of I/O. This example is complicated to minimize the large quantity of output possible.
 
     // Note that using this periodic output scheme - as implemented - causes the last output
     // value to persist through iterative periods if it hasn't changed. This behavior could be
     // changed with a check for stale data. It is problem dependent on what should be done -
-    // persist output or no output.
+    // persist output or no output?
 
       boolean newOutput = ! output.equals(outputPrevious);
 
@@ -56,8 +58,8 @@ public class SequentialTest extends SubsystemBase {
     }
 /* output of sequential group test commands
 
-Note that the default command is allowed to run between commands (during the waitSeconds) if using the separatedSequence.
-Note that using the sequnce (not separatedSequence) the default command does not run between commands.
+Note that the default command is allowed to run between commands (during the waitSeconds) if using the separatedSequence().
+Note that using the sequence() (not separatedSequence()) the default command does not run between commands.
 
 Warning at edu.wpi.first.wpilibj.DriverStation.reportJoystickUnpluggedWarning(DriverStation.java:1364): Joystick Button 2 on port 0 not available, check if controller is plugged in
  --- 250 times
@@ -86,8 +88,9 @@ default command
 
     /**
      * Recommendation is don't use the setDefaultCommand because default commands are not
-     * run inside composed commands.
-     * If you insist then recommendation is don't use more than one default command
+     * run inside composed commands. Using separatedSequence() can mitigate this problem
+     * since it allows the default command to run when individual commands end.
+     * If you insist on a default command then recommendation is don't use more than one default
      * because it may not be obvious which default command is active (last one set is active)
      * Allow no more than one call to this set of the view (resource, subsystem) default command
      * You're on your own to remember if there is a default command set or not.
