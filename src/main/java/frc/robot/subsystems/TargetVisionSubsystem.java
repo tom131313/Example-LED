@@ -35,13 +35,12 @@ public class TargetVisionSubsystem extends SubsystemBase {
 
     LEDPattern targetAcquiredSignal = LEDPattern.solid(Color.kOrange);
     return
-      /*sequential*/
+                  
       robotSignals.setSignal(targetAcquiredSignal) // this command locks the robotSignals.Top subsystem only
-      /*sequential*/
       .andThen(Commands.idle(this).withTimeout(0.)) // command created in this subsystem will lock this subsystem also
       /*composite*/
-        .withName("LedVisionTargetInSight")
-        .ignoringDisable(true); // ignore disable true must be here on the composite; on the first command doesn't do anything
+      .withName("LedVisionTargetInSight")
+      .ignoringDisable(true); // ignore disable true must be here on the composite; on the first command doesn't do anything
   }
 
   private boolean canSeeTarget() {
@@ -51,7 +50,8 @@ public class TargetVisionSubsystem extends SubsystemBase {
 
   /**
    * Disallow default command
-   * This prevents accidentally assuming the default command will run in composite commands which it wont.
+   * This prevents accidentally assuming the default command will run in composite commands which it wont
+   * unless using "disjointSequence()".
    */
   @Override
   public void setDefaultCommand(Command def) {

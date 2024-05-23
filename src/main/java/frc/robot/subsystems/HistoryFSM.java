@@ -100,7 +100,7 @@ public class HistoryFSM extends SubsystemBase {
     /**
      * Disallow default command
      * This prevents accidentally assuming the default command will run in composite commands which it wont.
-     * Or ungroupedSequence() could be used. Default command not used in this example.
+     * Or "disjointSequence()" could be used. Default command not used in this example.
      */
     @Override
     public void setDefaultCommand(Command def) {

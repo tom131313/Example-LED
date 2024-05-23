@@ -4,7 +4,7 @@
 
 /**
  * Example program that shows a variety of command based and programming
- * "best practices.""
+ * "best practices."
  * 
  * Demonstration output is on five sets of ten LEDs to show the program is
  * operating; operator input is Xbox controller. The sixth demonstration
@@ -31,8 +31,8 @@
  *     Subsystem based controller runs continuously and responds to a goal setting
  *       subsystem. Colors on color wheel position showing PID controller subsystem
  *       converging on a color selected by Xbox right trigger axis
- * 6. Disjointed Sequential Group Demo console output initiated by teleop enable mode
- *     Show default command runs after a subsystem requirement completes in a disjointed
+ * 6. Disjoint Sequential Group Demo console output initiated by teleop enable mode
+ *     Show default command runs after a subsystem requirement completes in an disjoint
  *       sequence but not a normal sequence
  * 
  * There are some variations with commands that may run disabled or not (most can).
@@ -172,9 +172,21 @@ public class Robot extends TimedRobot {
     // that their requirements are not required for the entire group process
     // and the default command will run.
     count++;
-    if (count == 500) m_robotContainer.testUngroupedSequence.schedule();
-    if (count == 600) m_robotContainer.testSequence.schedule();
-    if (count == 700) m_robotContainer.unregisterGroupedUngroupedTest();
+
+    // if (count == 500) m_robotContainer.testDisjointSequence.schedule();
+    // if (count == 600) m_robotContainer.testSequence.schedule();
+
+    if (count == 500) {
+      System.out.println("\nSTART TEST m_robotContainer.testDisjointParallel1");
+      m_robotContainer.testDisjointParallel1.schedule();
+    }
+
+    if (count == 600) {
+      System.out.println("\nSTART TEST m_robotContainer.testDisjointParallel2");
+      m_robotContainer.testDisjointParallel2.schedule();
+    }
+
+    if (count == 700) m_robotContainer.unregisterGroupedDisjointTest();
   }
 
   @Override
@@ -192,3 +204,5 @@ public class Robot extends TimedRobot {
   @Override
   public void testExit() {}
 }
+/*
+  */

@@ -5,6 +5,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.wpilibj2.command.Commands.deadline;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 import static edu.wpi.first.wpilibj2.command.Commands.sequence;
 import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
@@ -16,10 +17,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.AchieveHueGoal;
-import frc.robot.subsystems.GroupedUngroupedTest;
+import frc.robot.subsystems.GroupDisjointTest;
 import frc.robot.subsystems.HistoryFSM;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.RobotSignals;
@@ -38,7 +41,7 @@ public class RobotContainer {
   private final TargetVisionSubsystem vision;
   private final HistoryFSM historyFSM;
   private final AchieveHueGoal achieveHueGoal;
-  private final GroupedUngroupedTest groupedUngroupedTest = new GroupedUngroupedTest();
+  private final GroupDisjointTest groupDisjointTest = new GroupDisjointTest();
   private final RobotSignals robotSignals; // container for all the LEDView subsystems
 
   public RobotContainer() {
@@ -91,7 +94,7 @@ public class RobotContainer {
    * Suggest not using default commands to prevent assuming they run.
    * (Example included on how to disable the setDefaultCommand)
    * 
-   * Alternatively use the "separatedSequence" method that allows commands to
+   * Alternatively use the "disjointSequence()" method that allows commands to
    * release their resources upon completion instead of waiting for completion
    * of the entire command composition then the default command runs upon
    * completion of each individual command. (Example included)
@@ -190,26 +193,50 @@ public class RobotContainer {
   // Standard behavior is all subsystems are locked for the duration of the group execution and
   // no default commands even if the subsystem isn't continuous active.
 
-  public final Command testUngroupedSequence =
-    ungroupedSequence(
-      groupedUngroupedTest.setTest(1), waitSeconds(0.08), groupedUngroupedTest.setTest(2), waitSeconds(0.08),
-       groupedUngroupedTest.setTest(3));
+  public final Command testDisjointSequence =
+    disjointSequence(
+      groupDisjointTest.setTest(1), waitSeconds(0.08), groupDisjointTest.setTest(2), waitSeconds(0.08),
+       groupDisjointTest.setTest(3));
 
   public final Command testSequence =
     sequence(
-      groupedUngroupedTest.setTest(4), waitSeconds(0.08), groupedUngroupedTest.setTest(5), waitSeconds(0.08),
-       groupedUngroupedTest.setTest(6));
+      groupDisjointTest.setTest(4), waitSeconds(0.08), groupDisjointTest.setTest(5), waitSeconds(0.08),
+       groupDisjointTest.setTest(6));
 
-  private boolean runBeforeAfterGroupedUngroupedTest = true;
+  // disable groupedDisjointTest subsystem when testing is completed to stop irritating
+  // I/O (console output is expedient but ugly even compressed)
+  private boolean runBeforeAfterGroupedDisjointTest = true;
 
-  public final void unregisterGroupedUngroupedTest() {
-    CommandScheduler.getInstance().unregisterSubsystem(groupedUngroupedTest); // no periodic and no default command otherwise hard to tell it stopped
-    runBeforeAfterGroupedUngroupedTest = false; // so we need our own flag to indicate stopped
+  public final void unregisterGroupedDisjointTest() {
+    CommandScheduler.getInstance().unregisterSubsystem(groupDisjointTest); // no periodic and no default command otherwise hard to tell it stopped
+    runBeforeAfterGroupedDisjointTest = false; // so we need our own flag to indicate stopped
   }
+
+  // Demonstration of loosely connected commands in a parallel group such that the subsystem
+  // default commands run if the subsystem is not active.
+  // Standard behavior is all subsystems are locked for the duration of the group execution and
+  // no default commands even if the subsystem isn't continuous active.
+
+  public final Command testDisjointParallel1 =
+    disjointParallel(
+      groupDisjointTest.setTest(1),
+      waitSeconds(0.1).andThen(groupDisjointTest.setTest(2)).andThen(waitSeconds(0.25)),
+      groupDisjointTest.setTest(3).andThen(waitSeconds(0.25)));
+
+  // illegal - Multiple commands in a parallel composition cannot require the same subsystems
+  // public final Command testParallel =
+  //   parallel(
+  //     groupedDisjointTest.setTest(1).repeatedly(),
+  //     waitSeconds(0.1).andThen(groupedDisjointTest.setTest(2)));
+
+  public final Command testDisjointParallel2 =
+    disjointParallel(
+      groupDisjointTest.setTest(4).repeatedly(),
+      waitSeconds(0.1).andThen(groupDisjointTest.setTest(5)));
 
   // to be included in an upcoming WPILib release
   /**
-   * Runs individual commands in a series without grouped sequence behavior.
+   * Runs individual commands in a series without grouped behavior.
    *
    * <p>Each command is run independently by proxy. The requirements of
    * each command are reserved only for the duration of that command and
@@ -218,10 +245,63 @@ public class RobotContainer {
    *
    * @param commands the commands to include in the series
    * @return the command to run the series of commands
-   * @see #sequence() use sequence() to invoke group sequence behavior
+   * @see #sequence(Command...) use sequence() to invoke group sequence behavior
    */
-  public static Command ungroupedSequence(Command... commands) {
+  public static Command disjointSequence(Command... commands) {
     return sequence(proxyAll(commands));
+  }
+
+  /**
+   * Runs individual commands in a series without grouped behavior; once the last command ends, the series is restarted.
+   *
+   * <p>Each command is run independently by proxy. The requirements of
+   * each command are reserved only for the duration of that command and
+   * are not reserved for an entire group process as they are in a
+   * grouped sequence.
+   *
+   * @param commands the commands to include in the series
+   * @return the command to run the series of commands repeatedly
+   * @see #sequence(Command...) use sequenceRepeatedly() to invoke repeated group sequence behavior
+   * @see #disjointSequence(Command...)
+   * @see Command#repeatedly() 
+   */
+  public static Command repeatingDisjointSequence(Command... commands) {
+    return disjointSequence(commands).repeatedly();
+  }
+
+  /**
+   * Runs individual commands at the same time without grouped behavior; when the deadline command ends the otherCommands are cancelled.
+   *
+   * <p>Each otherCommand is run independently by proxy. The requirements of
+   * each command are reserved only for the duration of that command and are
+   * not reserved for an entire group process as they are in a grouped deadline.
+   *
+   * @param deadline the deadline command
+   * @param otherCommands the other commands to include and will be cancelled when the deadline ends
+   * @return the command to run the deadline command and otherCommands
+   * @see #deadline(Command, Command...) use deadline() to invoke group parallel deadline behavior
+   * @throws IllegalArgumentException if the deadline command is also in the otherCommands argument
+   */
+  public static Command disjointDeadline(Command deadline, Command... otherCommands) {
+    new ParallelDeadlineGroup(deadline, otherCommands); // check parallel deadline constraints
+    return deadline(deadline, proxyAll(otherCommands));
+  }
+
+  /**
+   * Runs individual commands at the same time without grouped behavior and ends once all commands finish.
+   *
+   * <p>Each command is run independently by proxy. The requirements of
+   * each command are reserved only for the duration of that command and
+   * are not reserved for an entire group process as they are in a
+   * grouped parallel.
+   *
+   * @param commands the commands to run in parallel
+   * @return the command to run the commands in parallel
+   * @see #parallel(Command...) use parallel() to invoke group parallel behavior
+   */
+  public static Command disjointParallel(Command... commands) {
+    new ParallelCommandGroup(commands); // check parallel constraints
+    return parallel(proxyAll(commands));
   }
 
   // to be included in an upcoming WPILib release
@@ -249,8 +329,8 @@ public class RobotContainer {
   }
 
   /**
-   * Run periodically before commands are run - read sensors
-   * Include all classes that have periodic inputs
+   * Run periodically before commands are run - read sensors, etc.
+   * Include all classes that have periodic inputs or other need to run periodically.
    *
    * There are clever ways to register classes so they are automatically
    * included in a list but this example is simplistic - remember to type them in.
@@ -262,8 +342,7 @@ public class RobotContainer {
     robotSignals.beforeCommands();
     historyFSM.beforeCommands();
     achieveHueGoal.beforeCommands();
-    if (runBeforeAfterGroupedUngroupedTest) {
-      groupedUngroupedTest.beforeCommands();
+    if (runBeforeAfterGroupedDisjointTest) { // disable irritating I/O when test completed
     }
   }
 
@@ -281,8 +360,8 @@ public class RobotContainer {
     robotSignals.afterCommands();
     historyFSM.afterCommands();
     achieveHueGoal.afterCommands();
-    if (runBeforeAfterGroupedUngroupedTest) {
-      groupedUngroupedTest.afterCommands();
+    if (runBeforeAfterGroupedDisjointTest) { // disable irritating I/O when test completed
+      groupDisjointTest.afterCommands();
     }
   }
 }
