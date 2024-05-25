@@ -171,7 +171,7 @@ public class Robot extends TimedRobot {
     // demonstrate method to run a loosely grouped sequence of commands such
     // that their requirements are not required for the entire group process
     // and the default command will run.
-    count++;
+    count++; // various tests are paced by this iteration counter
     m_robotContainer.testDisjoint(count);
   }
 

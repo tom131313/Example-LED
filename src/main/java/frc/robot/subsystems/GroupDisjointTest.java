@@ -1,13 +1,7 @@
 package frc.robot.subsystems;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class GroupDisjointTest extends SubsystemBase {
@@ -117,6 +111,13 @@ public class GroupDisjointTest extends SubsystemBase {
       });
     }
 
+    /**
+     * Command Factory for GroupDisjointTest subsystems
+     * 
+     * @param testNumber output this number and the resource (subsystem) ID
+     * @param testDuration seconds to run execute() to produce output
+     * @return
+     */
     public Command testDuration(int testNumber, double testDuration) {
       return new TestDuration(testNumber, testDuration);
     }
@@ -132,28 +133,28 @@ public class GroupDisjointTest extends SubsystemBase {
                                    // time history variable in RobotContainer while here it's automatic
 
       private TestDuration(int testNumber, double testDuration) {
+
         this.testNumber = testNumber;
         this.testDuration = testDuration;
-        addRequirements(GroupDisjointTest.this);
+        addRequirements(GroupDisjointTest.this); // requirements are too easy to forget
       }
 
       @Override
       public void initialize() {
-        endTime.reset();
-        endTime.start();
+
+        endTime.restart();
       }
 
       @Override
       public void execute() {
+
         output = resourceID + testNumber;
         outputFresh = true;
       }
 
       @Override
-      public void end(boolean interrupted) {}
-
-      @Override
       public boolean isFinished() {
+
         return endTime.hasElapsed(testDuration);
       }
     }

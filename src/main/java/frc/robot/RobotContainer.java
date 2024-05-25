@@ -226,14 +226,14 @@ public class RobotContainer {
   // Standard behavior is all subsystems are locked for the duration of the group execution and
   // no default commands even if the subsystem isn't continuous active.
 
-  // public final Command testParallel =
-  //   parallel(
-  //     sequence(parallel(groupDisjointTest[A].setTest(1).asProxy(), groupDisjointTest[A].setTest(2).asProxy())),// no error message but erroneious results
-  //     sequence(groupDisjointTest[B].setTest(1).asProxy(), waitSeconds(0.1), print("\nEND testParallel-B")),
-  //     sequence(groupDisjointTest[C].setTest(1).asProxy().andThen(waitSeconds(0.1).asProxy()).asProxy().andThen(print("\nEND testParallel-C").asProxy()).asProxy()).asProxy() // no default
-  //     // sequence(groupDisjointTest[C].setTest(1).asProxy().andThen(waitSeconds(0.1)).asProxy().andThen(print("\nEND testParallel-C")).asProxy()) // no default
-  //   );
 
+// Use of Proxy hides the error of having two commands running at once for the same subsystem.
+// Check for such errors by removing the Proxy and constructing the command.
+  public final Command testParallelBadresults =
+    parallel( // proxy hides same subsystem used twice at the same time; no error message but erroneous results
+      groupDisjointTest[A].setTest(1).asProxy(),
+      groupDisjointTest[A].setTest(2).asProxy()
+    );
 
     public final Command testParallel =
       parallel(
@@ -244,7 +244,7 @@ public class RobotContainer {
             groupDisjointTest[A].testDuration(3, .84).asProxy(),
             groupDisjointTest[B].testDuration(3, 1.).asProxy())),
       groupDisjointTest[C].testDuration(1, .6).asProxy()
-    );
+      );
 
 // can't use decorators on commands of subsystems needing default within the group
 // reform as parallel() or sequence()
@@ -477,7 +477,7 @@ AdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCd
   /**
    * Maps an array of commands by proxying every element using {@link Command#asProxy()}.
    *
-   * <p>This is useful to ensure that default commands of subsystems withing a command group are
+   * <p>This is useful to ensure that default commands of subsystems withing a command group are //FIXME within
    * still triggered despite command groups requiring the union of their members' requirements
    *
    * <p>Example usage for creating an auto for a robot that has a drivetrain and arm:
