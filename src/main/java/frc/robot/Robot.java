@@ -172,21 +172,7 @@ public class Robot extends TimedRobot {
     // that their requirements are not required for the entire group process
     // and the default command will run.
     count++;
-
-    // if (count == 500) m_robotContainer.testDisjointSequence.schedule();
-    // if (count == 600) m_robotContainer.testSequence.schedule();
-
-    if (count == 500) {
-      System.out.println("\nSTART TEST m_robotContainer.testDisjointParallel1");
-      m_robotContainer.testDisjointParallel1.schedule();
-    }
-
-    if (count == 600) {
-      System.out.println("\nSTART TEST m_robotContainer.testDisjointParallel2");
-      m_robotContainer.testDisjointParallel2.schedule();
-    }
-
-    if (count == 700) m_robotContainer.unregisterGroupedDisjointTest();
+    m_robotContainer.testDisjoint(count);
   }
 
   @Override
