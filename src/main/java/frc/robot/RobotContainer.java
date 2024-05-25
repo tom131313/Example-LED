@@ -60,6 +60,19 @@ public class RobotContainer {
     configureDefaultCommands();
 
     if(logCommands) configureLogging();
+
+    var cmd1 = waitSeconds(1.);
+    var req1 = cmd1.getRequirements();
+    if (!req1.isEmpty()) cmd1 = cmd1.asProxy();
+
+    var cmd2 = groupDisjointTest[0].setTest(1);
+    var req2 = cmd2.getRequirements();
+    if (!req2.isEmpty()) cmd2 = cmd2.asProxy();
+
+    System.out.println(req1 + " " + req2);
+    System.out.println(cmd1.getRequirements() + " " + cmd2.getRequirements());
+
+
   }
    
   /**
@@ -213,17 +226,50 @@ public class RobotContainer {
   // Standard behavior is all subsystems are locked for the duration of the group execution and
   // no default commands even if the subsystem isn't continuous active.
 
-  public final Command testParallel =
-    parallel(
-      disjointSequence(groupDisjointTest[A].setTest(1), waitSeconds(0.5), print("\nEND testParallel-A")),
-      disjointSequence(groupDisjointTest[B].setTest(1), waitSeconds(0.1), print("\nEND testParallel-B"))
+  // public final Command testParallel =
+  //   parallel(
+  //     sequence(parallel(groupDisjointTest[A].setTest(1).asProxy(), groupDisjointTest[A].setTest(2).asProxy())),// no error message but erroneious results
+  //     sequence(groupDisjointTest[B].setTest(1).asProxy(), waitSeconds(0.1), print("\nEND testParallel-B")),
+  //     sequence(groupDisjointTest[C].setTest(1).asProxy().andThen(waitSeconds(0.1).asProxy()).asProxy().andThen(print("\nEND testParallel-C").asProxy()).asProxy()).asProxy() // no default
+  //     // sequence(groupDisjointTest[C].setTest(1).asProxy().andThen(waitSeconds(0.1)).asProxy().andThen(print("\nEND testParallel-C")).asProxy()) // no default
+  //   );
+
+
+    public final Command testParallel =
+      parallel(
+        groupDisjointTest[A].testDuration(2, 2.).asProxy(),
+        sequence(
+          groupDisjointTest[B].testDuration(2, .74).asProxy(),
+          parallel(
+            groupDisjointTest[A].testDuration(3, .84).asProxy(),
+            groupDisjointTest[B].testDuration(3, 1.).asProxy())),
+      groupDisjointTest[C].testDuration(1, .6).asProxy()
     );
+
+// can't use decorators on commands of subsystems needing default within the group
+// reform as parallel() or sequence()
+// add .asProxy() to commands of subsystems needing the default to run in the group
+// can proxyAll() but really only need on subsystems needing default to run in group
+// test with sequences in parallel and other nested compliactions
 
   public final Command testDisjointParallel =
       disjointParallel(
       disjointSequence(groupDisjointTest[A].setTest(1), waitSeconds(0.5), print("\nEND testParallel-A")),
       disjointSequence(groupDisjointTest[B].setTest(1), waitSeconds(0.1), print("\nEND testParallel-B"))
     );
+/*
+AdBdCd
+START testParallel
+A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1
+A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1A2B2C1
+A2B2CdA2B2CdA2B2CdA2B2CdA2B2Cd
+A2BdCd
+A3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3Cd
+A3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3CdA3B3Cd
+AdB3CdAdB3CdAdB3CdAdB3CdAdB3CdAdB3CdAdB3CdAdB3Cd
+AdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCd
+
+*/
 
   public final Command testDeadline =
     deadline(
@@ -284,6 +330,7 @@ public class RobotContainer {
 
     if (count == 290) {
       groupDisjointTest[B].setDefaultCommand(); // used for Parallel and more testing
+      groupDisjointTest[C].setDefaultCommand(); // used for Parallel and more testing
     }
 
     if (count == 300) {
@@ -294,10 +341,6 @@ public class RobotContainer {
     if (count == 400) {
       System.out.println("\nSTART testDisjointParallel");
       testDisjointParallel.schedule();
-    }
-
-    if (count == 470) {
-      groupDisjointTest[C].setDefaultCommand(); // used in deadline and race testing
     }
 
     if (count == 500) {
@@ -318,10 +361,6 @@ public class RobotContainer {
     if (count == 800) {
       System.out.println("\nSTART testDisjointRace");
       testDisjointRace.schedule();
-    }
-
-    if (count == 895) {
-      configureLogging();
     }
 
     if (count == 900) {

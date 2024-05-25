@@ -1,6 +1,13 @@
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class GroupDisjointTest extends SubsystemBase {
@@ -31,12 +38,6 @@ public class GroupDisjointTest extends SubsystemBase {
     // processing in periodic I/O should be kept to a minimum to get the best consistent set
     // of I/O. This example is complicated to minimize the large quantity of output possible.
 
-      // output - everything; only new values (duplicate values output, too, but only refreshed ones)
-      if (outputFresh) {
-        outputFresh = false;
-        System.out.print(output);
-      }
-
       // output - compressed; persistent values even stale ones
       boolean compressOutput = false;
       if (compressOutput)
@@ -66,7 +67,11 @@ public class GroupDisjointTest extends SubsystemBase {
 
       outputPrevious = output;
       } // end output compression
-
+      else       
+      if (outputFresh) {// output - everything; only new values (duplicate values output, too, but only refreshed ones)
+        outputFresh = false;
+        System.out.print(output);
+      }
     }
 
     /*
@@ -106,10 +111,51 @@ public class GroupDisjointTest extends SubsystemBase {
 
     public final Command setTest(int testNumber) {
 
-        return runOnce(()->{
-          output = resourceID + testNumber;
-          outputFresh = true;
-        });
+      return runOnce(()->{
+        output = resourceID + testNumber;
+        outputFresh = true;
+      });
+    }
+
+    public Command testDuration(int testNumber, double testDuration) {
+      return new TestDuration(testNumber, testDuration);
+    }
+
+    private class TestDuration extends Command {
+
+      private int testNumber;
+      private double testDuration;
+      Timer endTime = new Timer(); // need a memory of time; put in the narrowest scope
+                                   // wouldn't have to have quite so large of command template code if
+                                   // time history scope was put in RobotContainer but then it's hard to
+                                   // manage since each subsystem instance would need a manually coded
+                                   // time history variable in RobotContainer while here it's automatic
+
+      private TestDuration(int testNumber, double testDuration) {
+        this.testNumber = testNumber;
+        this.testDuration = testDuration;
+        addRequirements(GroupDisjointTest.this);
+      }
+
+      @Override
+      public void initialize() {
+        endTime.reset();
+        endTime.start();
+      }
+
+      @Override
+      public void execute() {
+        output = resourceID + testNumber;
+        outputFresh = true;
+      }
+
+      @Override
+      public void end(boolean interrupted) {}
+
+      @Override
+      public boolean isFinished() {
+        return endTime.hasElapsed(testDuration);
+      }
     }
 
     // note that the Commands.print("testing " + testNumber) does not require a subsystem which
