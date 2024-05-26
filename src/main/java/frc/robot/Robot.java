@@ -153,7 +153,7 @@ public class Robot extends TimedRobot {
     }
   }
 
-  private int count;
+  public static int count;
 
   @Override
   public void teleopInit() { // commands running from another mode haven't been cancelled directly except the one below
@@ -161,7 +161,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
+    m_robotContainer.testTrigger.schedule();
     count = 0;
   }
 
@@ -172,7 +172,7 @@ public class Robot extends TimedRobot {
     // that their requirements are not required for the entire group process
     // and the default command will run.
     count++; // various tests are paced by this iteration counter
-    m_robotContainer.testDisjoint(count);
+    // m_robotContainer.testDisjoint();
   }
 
   @Override
