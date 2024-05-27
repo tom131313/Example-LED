@@ -50,7 +50,7 @@ public class TriggeredDisjointSequence extends WrapperCommand {
     private final InternalButton m_trigger;
 
     private TriggeredDisjointSequence(Command command) {
-        
+
         super(command);
         m_trigger = new InternalButton();
     }
@@ -75,18 +75,19 @@ public class TriggeredDisjointSequence extends WrapperCommand {
     }
 
     /**
-     * Run commands in a sequence by triggering.
-     * 
-     * <p>Each command is added to an individual composition group (WrapperCommand) and is thus
+     * Run commands in a sequence with the end of a command triggering the next command.
+     *
+     * <p>Each command is added to an individual composition group (WrapperCommand) and thus is
      * restricted but the requirements of each component command are not required for the entire
      * group process since each wrapped command is run individually by being triggered from the
      * previous command.
-     * 
+     *
+     * <p>Individual commands can be treated with .asProxy() as needed to break out of the
+     * wrapper composition group.
+     *
      * <p>Schedule the first command and all the rest trigger the successors.
-     *  
+     *
      * @param commands - list of commands to run sequentially
-
-     * 
      * @return the first command to run by scheduling it and the remainder are automatically triggered.
      */
     public static Command sequence(Command... commands) {

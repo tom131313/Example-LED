@@ -1,9 +1,9 @@
 package frc.robot.subsystems;
 
+// General purpose class to create test commands
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.InternalButton;
 
 public class GroupDisjointTest extends SubsystemBase {
 
@@ -102,15 +102,6 @@ public class GroupDisjointTest extends SubsystemBase {
       output = resourceID + "d";
       outputFresh = true;
       });
-    // private final Command defaultCommand = run(()->System.out.println("default command"));
-
-    public final Command setTest(int testNumber) {
-
-      return runOnce(()->{
-        output = resourceID + testNumber;
-        outputFresh = true;
-      });
-    }
 
     /**
      * Command Factory for GroupDisjointTest subsystems
