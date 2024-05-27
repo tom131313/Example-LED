@@ -12,8 +12,6 @@ import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
 import static edu.wpi.first.wpilibj2.command.Commands.sequence;
 import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
 
-import java.util.function.DoubleSupplier;
-
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -34,18 +32,24 @@ import frc.robot.subsystems.TargetVisionSubsystem;
 
 public class RobotContainer {
 
+  // runtime options; too rigid - could be made easier to find and change but this is just a "simple" example program
   private boolean logCommands = false; // switch command logging on/off; a lot of output for the command execute methods
+  private boolean useTriggeredJob = true; // select runtime option run tests as Triggered job or run as Commands.sequence
+
+  // define all the subsystems
   private int operatorControllerPort = 0; 
   private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
-  private DoubleSupplier hueGoal = ()->operatorController.getRightTriggerAxis() * 180.; // scale joystick 0 to 1 to computer color wheel hue 0 to 180
-  
-  // define all the subsystems
   private final IntakeSubsystem intake;
   private final TargetVisionSubsystem vision;
   private final HistoryFSM historyFSM;
   private final AchieveHueGoal achieveHueGoal;
   private final GroupDisjointTest[] groupDisjointTest = {new GroupDisjointTest("A"), new GroupDisjointTest("B"), new GroupDisjointTest("C")};
+  private final int A = 0; // subsystem id is subscript on the array of GroupDisjointTest subsystems
+  private final int B = 1;
+  private final int C = 2;
   private final RobotSignals robotSignals; // container for all the LEDView subsystems
+
+  public Command disjointedSequenceTestJob; // Command to be scheduled for running test job
 
   public RobotContainer() {
 
@@ -53,15 +57,18 @@ public class RobotContainer {
     intake = new IntakeSubsystem(robotSignals.Main, operatorController);
     vision = new TargetVisionSubsystem(robotSignals.Top, operatorController);
     historyFSM = new HistoryFSM(robotSignals.HistoryDemo, operatorController);
-    achieveHueGoal = new AchieveHueGoal(robotSignals.AchieveHueGoal/*, hueGoal*/);
+    achieveHueGoal = new AchieveHueGoal(robotSignals.AchieveHueGoal);
  
     configureBindings();
 
     configureDefaultCommands();
 
+    configureTestJob(useTriggeredJob);
+
     if(logCommands) configureLogging();
 
-//FIXME research start of checking requirements if that verification is added to all the disjoint methods
+    { // junk
+//FIXME research start of checking requirements if that verification must be added to all the disjoint methods
     var cmd1 = waitSeconds(1.);
     var req1 = cmd1.getRequirements();
     if (!req1.isEmpty()) cmd1 = cmd1.asProxy();
@@ -72,6 +79,8 @@ public class RobotContainer {
 
     System.out.println(req1 + " " + req2);
     System.out.println(cmd1.getRequirements() + " " + cmd2.getRequirements());
+    }
+
   }
    
   /**
@@ -83,8 +92,11 @@ public class RobotContainer {
     operatorController.x().debounce(0.03, DebounceType.kBoth)
       .onTrue(robotSignals.Top.setSignal(colorWheel()));
 
-    final Trigger startAcceptingSetpoints = new Trigger(operatorController.rightTrigger(0.05))
-      .onTrue(achieveHueGoal.hueGoal.setHueGoal(hueGoal));
+    new Trigger(operatorController.rightTrigger(0.05)) // triggers if past a small threshold
+      .onTrue(achieveHueGoal.hueGoal.setHueGoal(             // then it's always on
+        ()->operatorController.getRightTriggerAxis() * 180.  // supplying the current value; scale joystick's 0 to 1 to computer color wheel hue 0 to 180
+        )
+      );
   }
 
   /**
@@ -206,173 +218,185 @@ public class RobotContainer {
         );
     //_________________________________________________________________________________
   }
-  
-  // Demonstration of loosely connected commands in a sequential group such that the subsystem
-  // default commands run if the subsystem is not active.
-  // Standard behavior is all subsystems are locked for the duration of the group execution and
-  // no default commands even if the subsystem isn't continuous active.
 
-  private static final int A = 0; // subsystem id is subscript on the array of subsystems
-  private static final int B = 1;
-  private static final int C = 2;
-
-  // Default commands running for A, B, and C
-  // Observe default commands don't run in groups unless disjointed by use of Proxy
-
-  public final Command testSequence =
-    sequence(
-      groupDisjointTest[A].testDuration(1, 0.), waitSeconds(0.1), groupDisjointTest[A].testDuration(2, 0.));
-
-  public final Command testDisjointSequence =
-    disjointSequence(
-      groupDisjointTest[A].testDuration(1, 0.), waitSeconds(0.1), groupDisjointTest[A].testDuration(2, 0.));
-
-  public final Command testRepeatingSequence =
-    sequence(
-      groupDisjointTest[A].testDuration(1, 0.05),
-      groupDisjointTest[B].testDuration(1, 0.05),
-      groupDisjointTest[C].testDuration(1, 0.05)
-    )
-    .repeatedly().withTimeout(0.5);
-
-  public final Command testDisjointRepeatingSequence =
-    disjointSequence(
-      groupDisjointTest[A].testDuration(1, 0.05),
-      groupDisjointTest[B].testDuration(1, 0.05),
-      groupDisjointTest[C].testDuration(1, 0.05)
-    )
-    .repeatedly().withTimeout(0.5);
-
-  // Demonstration of loosely connected commands in a parallel group such that the subsystem
-  // default commands run if the subsystem is not active.
-  // Standard behavior is all subsystems are locked for the duration of the group execution and
-  // no default commands even if the subsystem isn't continuous active.
-
-  // can't use decorators .andThen .alongWith on commands of subsystems needing default
-  // within the group reform as parallel() or sequence()
-  // add .asProxy() to commands of subsystems needing the default to run in the group
-  // can proxyAll() but really only need on subsystems needing default to run in group
-  // test with sequences in parallel and other nested compliactions
-
-  // Use of Proxy hides the error of having two commands running at once for the same subsystem.
-  // Check for such errors by removing the Proxy and constructing the command.
-  public final Command testParallelBadresults =
-    parallel( // proxy hides same subsystem used twice at the same time; no error message but erroneous results
-      groupDisjointTest[A].testDuration(1, 0.1).asProxy(),
-      groupDisjointTest[A].testDuration(2, 0.1).asProxy()
-    );
-
-  // Unhandled exception: java.lang.IllegalArgumentException:
-  // Multiple commands in a parallel composition cannot require the same subsystems
-  public final Command testParallel =
-    parallel(
-      sequence(
-        groupDisjointTest[B].testDuration(1, 0.74),
-        parallel(
-          groupDisjointTest[A].testDuration(1, 0.84),
-          groupDisjointTest[B].testDuration(2, 1.))),
-      groupDisjointTest[C].testDuration(1, 0.6)
-    );
-
-  public final Command testDisjointParallel =
-    disjointParallel(
-      disjointSequence(
-        groupDisjointTest[B].testDuration(1, 0.74),
-        disjointParallel(
-          groupDisjointTest[A].testDuration(1, 0.84),
-          groupDisjointTest[B].testDuration(1, 1.))),
-      groupDisjointTest[C].testDuration(1, 0.6)
-    );
-
-  public final Command testManualDisjointParallel =
-    parallel(
-      sequence(
-        groupDisjointTest[B].testDuration(1, 0.74).asProxy(),
-        parallel(
-          groupDisjointTest[A].testDuration(1, 0.84).asProxy(),
-          groupDisjointTest[B].testDuration(2, 1.).asProxy())),
-      groupDisjointTest[C].testDuration(1, 0.6).asProxy()
-    );
-
-  public final Command testDeadline =
-    deadline(
-      sequence(groupDisjointTest[A].testDuration(1, 0.1), waitSeconds(0.2)),
-      sequence(groupDisjointTest[B].testDuration(1, 0.12)),
-      sequence(groupDisjointTest[C].testDuration(1, 0.4))
-    );
-
-  public final Command testDisjointDeadline =
-    disjointDeadline(
-      disjointSequence(groupDisjointTest[A].testDuration(1, 0.1), waitSeconds(0.2)),
-      disjointSequence(groupDisjointTest[B].testDuration(1, 0.12)),
-      disjointSequence(groupDisjointTest[C].testDuration(1, 0.4))
-    );
-
-  public final Command testRace =
-    race(
-      disjointSequence(groupDisjointTest[A].testDuration(1, 0.24)),
-      disjointSequence(groupDisjointTest[B].testDuration(1, 0.12), waitSeconds(0.3)),
-      disjointSequence(groupDisjointTest[C].testDuration(1, 0.12), waitSeconds(0.3))
-    );
-
-  public final Command testDisjointRace =
-    disjointRace(
-      disjointSequence(groupDisjointTest[A].testDuration(1, 0.24)),
-      disjointSequence(groupDisjointTest[B].testDuration(1, 0.12), waitSeconds(0.3)),
-      disjointSequence(groupDisjointTest[C].testDuration(1, 0.12), waitSeconds(0.3))
-    );
-
-  // illegal - Multiple commands in a parallel composition cannot require the same subsystems
-  // public final Command testParallel =
-  //   parallel(
-  //     groupedDisjointTest.setTest(1).repeatedly(),
-  //     waitSeconds(0.1).andThen(groupedDisjointTest.setTest(2)));
+  /* 
+  * Sample program to demonstrate loose coupling of Commands in a sequential grouping.
+  *
+  * A standard sequence locks all of the requirements of all of the subsystems used in
+  * the group for the duration of the sequential execution. Default commands do not run
+  * until the entire sequence completes.
+  * 
+  * A loosely connected sequential group demonstrates that each command runs
+  * independently and when a command ends its subsystems' default commands run.
+  * 
+  * Running the same sequence normally with demonstrates that the subsystems'
+  * requirements are maintained for the entire group execution duration and
+  * the default commands are not activated until the sequence group ends.
+  */
 
   /**
-   * Use triggering of successive jobs
-   * or sequence or disjointSequence.
+   * Define all tests of the use of Proxy or not to activate or not default commands
+   * within command groups.
    * 
-   * With triggering we only have to fuss with Proxy within each
-   * command as there is no interaction between commands.
+   * Create a job that runs all tests.
+   * 
+   * Option to run all tests as a succession of triggered Commands or as a single
+   * Commands.sequence(). With triggering we may only have to fuss with Proxy within
+   * each command as there is no interaction between commands. Normally the results are
+   * identical except triggering needs one iteration to start the next command and sequence
+   * needs two iterations to start the next command.
+   * 
+   * @param useTriggeredJob true for Triggered jobs and false for use Commands.sequence()
    */
-  public Command allTests = TriggeredDisjointSequence.sequence
-  // public Command allTests = disjointSequence
-    (
-      // need a "Runnable" as a supplier for the dynamic "count"
-      // print Command is static so "count" is the value when the command was made - not run.
-      runOnce(()->System.out.println("\nSTART testSequence " + Robot.count)),
+  private void configureTestJob (boolean useTriggeredJob) {
+
+  // Default commands running for A, B, and C.
+  // Observe default commands don't run in groups unless disjointed by use of Proxy
+
+  // Can't use decorators .andThen .alongWith on commands of subsystems needing default
+  // within the group - reform as parallel() or sequence().
+
+  // Add .asProxy() to commands of subsystems needing the default to run in the group.
+  // Could proxyAll() but really only need on subsystems needing default to run in group
+  // test with sequences in parallel and other nested complications
+
+    final Command testSequence =
+      sequence(
+        groupDisjointTest[A].testDuration(1, 0.), waitSeconds(0.1), groupDisjointTest[A].testDuration(2, 0.));
+
+    final Command testDisjointSequence =
+      disjointSequence(
+        groupDisjointTest[A].testDuration(1, 0.), waitSeconds(0.1), groupDisjointTest[A].testDuration(2, 0.));
+
+    final Command testRepeatingSequence =
+      sequence(
+        groupDisjointTest[A].testDuration(1, 0.05),
+        groupDisjointTest[B].testDuration(1, 0.05),
+        groupDisjointTest[C].testDuration(1, 0.05)
+      )
+      .repeatedly().withTimeout(0.5);
+
+    final Command testDisjointRepeatingSequence =
+      disjointSequence(
+        groupDisjointTest[A].testDuration(1, 0.05),
+        groupDisjointTest[B].testDuration(1, 0.05),
+        groupDisjointTest[C].testDuration(1, 0.05)
+      )
+      .repeatedly().withTimeout(0.5);
+
+    // // Use of Proxy hides the error of having two commands running at once for the same subsystem.
+    // // Check for such errors by removing the Proxy and constructing the command.
+    // // Unhandled exception: java.lang.IllegalArgumentException:
+    // //    Multiple commands in a parallel composition cannot require the same subsystems
+    // final Command testParallelBadresults =
+    //   parallel( // proxy hides same subsystem used twice at the same time; no error message but erroneous results
+    //     groupDisjointTest[A].testDuration(1, 0.1).asProxy(),
+    //     groupDisjointTest[A].testDuration(2, 0.1).asProxy()
+    //   );
+
+    final Command testParallel =
+      parallel(
+        sequence(
+          groupDisjointTest[B].testDuration(1, 0.74),
+          parallel(
+            groupDisjointTest[A].testDuration(1, 0.84),
+            groupDisjointTest[B].testDuration(2, 1.))),
+        groupDisjointTest[C].testDuration(1, 0.6)
+      );
+
+    final Command testDisjointParallel =
+      disjointParallel(
+        disjointSequence(
+          groupDisjointTest[B].testDuration(1, 0.74),
+          disjointParallel(
+            groupDisjointTest[A].testDuration(1, 0.84),
+            groupDisjointTest[B].testDuration(1, 1.))),
+        groupDisjointTest[C].testDuration(1, 0.6)
+      );
+
+    final Command testManualDisjointParallel =
+      parallel(
+        sequence(
+          groupDisjointTest[B].testDuration(1, 0.74).asProxy(),
+          parallel(
+            groupDisjointTest[A].testDuration(1, 0.84).asProxy(),
+            groupDisjointTest[B].testDuration(2, 1.).asProxy())),
+        groupDisjointTest[C].testDuration(1, 0.6).asProxy()
+      );
+
+    final Command testDeadline =
+      deadline(
+        sequence(groupDisjointTest[A].testDuration(1, 0.1), waitSeconds(0.2)),
+        sequence(groupDisjointTest[B].testDuration(1, 0.12)),
+        sequence(groupDisjointTest[C].testDuration(1, 0.4))
+      );
+
+    final Command testDisjointDeadline =
+      disjointDeadline(
+        disjointSequence(groupDisjointTest[A].testDuration(1, 0.1), waitSeconds(0.2)),
+        disjointSequence(groupDisjointTest[B].testDuration(1, 0.12)),
+        disjointSequence(groupDisjointTest[C].testDuration(1, 0.4))
+      );
+
+    final Command testRace =
+      race(
+        disjointSequence(groupDisjointTest[A].testDuration(1, 0.24)),
+        disjointSequence(groupDisjointTest[B].testDuration(1, 0.12), waitSeconds(0.3)),
+        disjointSequence(groupDisjointTest[C].testDuration(1, 0.12), waitSeconds(0.3))
+      );
+
+    final Command testDisjointRace =
+      disjointRace(
+        disjointSequence(groupDisjointTest[A].testDuration(1, 0.24)),
+        disjointSequence(groupDisjointTest[B].testDuration(1, 0.12), waitSeconds(0.3)),
+        disjointSequence(groupDisjointTest[C].testDuration(1, 0.12), waitSeconds(0.3))
+      );
+
+    // illegal - Multiple commands in a parallel composition cannot require the same subsystems
+    // public final Command testParallel =
+    //   parallel(
+    //     groupedDisjointTest.setTest(1).repeatedly(),
+    //     waitSeconds(0.1).andThen(groupedDisjointTest.setTest(2)));
+
+    Command[] allTests =
+    {
+      // need a "Runnable" as a supplier for the dynamic "teleopIterationCounter"
+      // The print Command is static so its "teleopIterationCounter" would be the value when the command was made - not run.
+      // "teleopIterationCounter" isn't much value in these examples - a curiosity to see the timing.
+
+      runOnce(()->System.out.println("\nSTART testSequence " + Robot.teleopIterationCounter)),
        testSequence,
-        runOnce(()->System.out.println("\nEND testSequence " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testDisjointSequence " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testSequence " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testDisjointSequence " + Robot.teleopIterationCounter)),
        testDisjointSequence,
-        runOnce(()->System.out.println("\nEND testDisjointSequence " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testRepeatingSequence " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testDisjointSequence " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testRepeatingSequence " + Robot.teleopIterationCounter)),
        testRepeatingSequence,
-        runOnce(()->System.out.println("\nEND testRepeatingSequence " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testDisjointRepeatingSequence " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testRepeatingSequence " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testDisjointRepeatingSequence " + Robot.teleopIterationCounter)),
        testDisjointRepeatingSequence,
-        runOnce(()->System.out.println("\nEND testDisjointRepeatingSequence " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testDisjointRepeatingSequence " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testParallel " + Robot.teleopIterationCounter)),
        testParallel,
-        runOnce(()->System.out.println("\nEND testParallel " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testDisjointParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testParallel " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testDisjointParallel " + Robot.teleopIterationCounter)),
        testDisjointParallel,
-        runOnce(()->System.out.println("\nEND testDisjointParallel " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testManualDisjointParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testDisjointParallel " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testManualDisjointParallel " + Robot.teleopIterationCounter)),
        testManualDisjointParallel,
-        runOnce(()->System.out.println("\nEND testManualDisjointParallel " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testDeadlineParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testManualDisjointParallel " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testDeadlineParallel " + Robot.teleopIterationCounter)),
        testDeadline,
-        runOnce(()->System.out.println("\nEND testDeadlineParallel " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testDisjointDeadlineParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testDeadlineParallel " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testDisjointDeadlineParallel " + Robot.teleopIterationCounter)),
        testDisjointDeadline,
-        runOnce(()->System.out.println("\nEND testDisjointDeadlineParallel " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testRaceParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testDisjointDeadlineParallel " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testRaceParallel " + Robot.teleopIterationCounter)),
        testRace,
-        runOnce(()->System.out.println("\nEND testRaceParallel " + Robot.count)),
-      runOnce(()->System.out.println("\nSTART testDisjointRaceParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testRaceParallel " + Robot.teleopIterationCounter)),
+      runOnce(()->System.out.println("\nSTART testDisjointRaceParallel " + Robot.teleopIterationCounter)),
        testDisjointRace,
-        runOnce(()->System.out.println("\nEND testDisjointRaceParallel " + Robot.count)),
+        runOnce(()->System.out.println("\nEND testDisjointRaceParallel " + Robot.teleopIterationCounter)),
       runOnce(()->
               {
                 // stop default commands to stop the output
@@ -383,15 +407,62 @@ public class RobotContainer {
                 groupDisjointTest[B].removeDefaultCommand();
                 groupDisjointTest[C].removeDefaultCommand();
               })
-    );
+    };
+
+    if (useTriggeredJob) {
+      disjointedSequenceTestJob = TriggeredDisjointSequence.sequence(allTests);
+    }
+    else {
+      disjointedSequenceTestJob = disjointSequence (allTests);
+    }
+  }
+
+  /**
+   * Run periodically before commands are run - read sensors, etc.
+   * Include all classes that have periodic inputs or other need to run periodically.
+   *
+   * There are clever ways to register classes so they are automatically
+   * included in a list but this example is simplistic - remember to type them in.
+   */
+  public void beforeCommands() {
+
+    intake.beforeCommands();
+    vision.beforeCommands();
+    robotSignals.beforeCommands();
+    historyFSM.beforeCommands();
+    achieveHueGoal.beforeCommands();
+    groupDisjointTest[0].afterCommands();
+    groupDisjointTest[1].afterCommands();
+    groupDisjointTest[2].afterCommands();
+  }
+
+  /**
+   * Run periodically after commands are run - write logs, dashboards, indicators
+   * Include all classes that have periodic outputs
+   * 
+   * There are clever ways to register classes so they are automatically
+   * included in a list but this example is simplistic - remember to type them in.
+   */
+  public void afterCommands() {
+
+    intake.afterCommands();
+    vision.afterCommands();
+    robotSignals.afterCommands();
+    historyFSM.afterCommands();
+    achieveHueGoal.afterCommands();
+    groupDisjointTest[0].afterCommands();
+    groupDisjointTest[1].afterCommands();
+    groupDisjointTest[2].afterCommands();
+  }
 
   /*********************************************************************************************************/
   /*********************************************************************************************************/
   /*********************************************************************************************************/
+  // anticipated to be included in an upcoming WPILib release
   /*********************************************************************************************************/
   /*********************************************************************************************************/
   /*********************************************************************************************************/
-  // to be included in an upcoming WPILib release
+
   /**
    * Runs individual commands in a series without grouped behavior.
    *
@@ -508,50 +579,6 @@ public class RobotContainer {
       out[i] = commands[i].asProxy();
     }
     return out;
-  }
-/*********************************************************************************************************/
-/*********************************************************************************************************/
-/*********************************************************************************************************/
-/*********************************************************************************************************/
-/*********************************************************************************************************/
-/*********************************************************************************************************/
-
-  /**
-   * Run periodically before commands are run - read sensors, etc.
-   * Include all classes that have periodic inputs or other need to run periodically.
-   *
-   * There are clever ways to register classes so they are automatically
-   * included in a list but this example is simplistic - remember to type them in.
-   */
-  public void beforeCommands() {
-
-    intake.beforeCommands();
-    vision.beforeCommands();
-    robotSignals.beforeCommands();
-    historyFSM.beforeCommands();
-    achieveHueGoal.beforeCommands();
-    groupDisjointTest[0].afterCommands();
-    groupDisjointTest[1].afterCommands();
-    groupDisjointTest[2].afterCommands();
-  }
-
-  /**
-   * Run periodically after commands are run - write logs, dashboards, indicators
-   * Include all classes that have periodic outputs
-   * 
-   * There are clever ways to register classes so they are automatically
-   * included in a list but this example is simplistic - remember to type them in.
-   */
-  public void afterCommands() {
-
-    intake.afterCommands();
-    vision.afterCommands();
-    robotSignals.afterCommands();
-    historyFSM.afterCommands();
-    achieveHueGoal.afterCommands();
-    groupDisjointTest[0].afterCommands();
-    groupDisjointTest[1].afterCommands();
-    groupDisjointTest[2].afterCommands();
   }
 }
 
@@ -747,4 +774,4 @@ AdBdCdAdBdCdAdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1BdCdA1BdCdA1BdCdA1BdCdA1BdCdA1
 END testDisjointRaceParallel 445
 
 AdBdCdAdBdCdAdBdCd
- */
+*/

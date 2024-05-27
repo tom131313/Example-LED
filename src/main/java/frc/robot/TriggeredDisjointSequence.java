@@ -5,9 +5,19 @@ import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.InternalButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-// donation by CD @bovlb
+// donation by ChiefDelphi poster @bovlb
 
-// Uasge:
+// Usage:
+
+  // good example with best practice of using command factories
+  // Command
+  // test = TriggeredDisjointSequence.sequence(
+  //     mySubsystem.test1(),
+  //     mySubsystem.test2(),
+  //     mySubsystem.test3(),
+  //     mySubsystem.test4(),
+  //     mySubsystem.test1()); // fresh Command from its factory so it doesn't conflict with other one
+  // test.schedule();
 
   // bad example of the pitfall of not using command factories
   // Command
@@ -20,16 +30,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
   // // removed from the WrapperCommand group
   //     runOnce(()->CommandScheduler.getInstance().removeComposedCommand(test1)),
   //     test1);
-  // test.schedule();
-
-  // good example with best practice of using command factories
-  // Command
-  // test = TriggeredDisjointSequence.sequence(
-  //     mySubsystem.test1(),
-  //     mySubsystem.test2(),
-  //     mySubsystem.test3(),
-  //     mySubsystem.test4(),
-  //     mySubsystem.test1());
   // test.schedule();
 
 /**
@@ -104,10 +104,12 @@ public class TriggeredDisjointSequence extends WrapperCommand {
         int i = 0;
 
         for (Command command : commands) {
+
             int firstCommandIndex = 0;
             int lastCommandIndex = commands.length - 1;
             boolean atFirstcommand = i == firstCommandIndex;
             boolean atLastCommand = i == lastCommandIndex;
+
             TriggeredDisjointSequence augmented = null;
 
             if( ! atLastCommand) {

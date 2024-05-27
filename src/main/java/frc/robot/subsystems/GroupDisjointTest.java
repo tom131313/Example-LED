@@ -5,7 +5,7 @@ package frc.robot.subsystems;
 // The class constructor accepts a parameter for the resource (subsystem) ID.
 
 // The Command factory "testDuration" accepts parameters for the test number
-// and the duration the test command should run.
+// and the duration the test command should run. (Note that is a "history" example.)
 
 // The default command is "built-in" so changes must be recoded in the class.
 
@@ -32,10 +32,9 @@ public class GroupDisjointTest extends SubsystemBase {
 
     public GroupDisjointTest (String resourceID) {
       this.resourceID = resourceID;
-      // setDefaultCommand(defaultCommand);
     }
 
- public void beforeCommands() {}
+    public void beforeCommands() {}
 
     public void afterCommands() {
     // processing in periodic I/O should be kept to a minimum to get the best consistent set
@@ -83,7 +82,7 @@ public class GroupDisjointTest extends SubsystemBase {
 
     /**
      * Recommendation is don't use the setDefaultCommand because default commands are not
-     * run inside composed commands. Using "disjointSequence()", etc. (ProxyCommands) can
+     * run inside composed commands. Using "disjointSequence", etc. (ProxyCommands) can
      * mitigate this problem since it allows the default command to run when individual
      * commands end.
      * If you use a default command then recommendation is don't use more than one default
