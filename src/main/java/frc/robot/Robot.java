@@ -161,18 +161,13 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    m_robotContainer.testTrigger.schedule();
+    m_robotContainer.allTests.schedule();
     count = 0;
   }
 
   @Override
   public void teleopPeriodic() {
-    
-    // demonstrate method to run a loosely grouped sequence of commands such
-    // that their requirements are not required for the entire group process
-    // and the default command will run.
-    count++; // various tests are paced by this iteration counter
-    // m_robotContainer.testDisjoint();
+    count++; // iteration counter to show command start/stop time; a curiosity and not a need
   }
 
   @Override

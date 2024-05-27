@@ -1,6 +1,14 @@
 package frc.robot.subsystems;
 
-// General purpose class to create test commands
+// General purpose class to create test commands.
+
+// The class constructor accepts a parameter for the resource (subsystem) ID.
+
+// The Command factory "testDuration" accepts parameters for the test number
+// and the duration the test command should run.
+
+// The default command is "built-in" so changes must be recoded in the class.
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -75,11 +83,14 @@ public class GroupDisjointTest extends SubsystemBase {
 
     /**
      * Recommendation is don't use the setDefaultCommand because default commands are not
-     * run inside composed commands. Using "disjointSequence()" can mitigate this problem
-     * since it allows the default command to run when individual commands end.
-     * If you insist on a default command then recommendation is don't use more than one default
-     * because it may not be obvious which default command is active (last one set is active)
-     * Allow no more than one call to this set of the view (resource, subsystem) default command
+     * run inside composed commands. Using "disjointSequence()", etc. (ProxyCommands) can
+     * mitigate this problem since it allows the default command to run when individual
+     * commands end.
+     * If you use a default command then recommendation is don't use more than one default
+     * because it may not be obvious which default command is active (last one set is active).
+     * 
+     * Example code below to allow no more than one call to this set default command of the
+     * resource/subsystem.
      * You're on your own to remember if there is a default command set or not.
      */
     @Override
@@ -151,11 +162,8 @@ public class GroupDisjointTest extends SubsystemBase {
         return endTime.hasElapsed(testDuration);
       }
     }
-
-
-    
-    // note that the Commands.print("testing " + testNumber) does not require a subsystem which
-    // is needed for this test so System.out.print() was used more directly.
-    // And related note that Command factories cannot be "static" since they require the subsystem
-    // instance ("this"; implied in this example by the runOnce() command).
 }
+// note that the Commands.print("testing " + testNumber) does not require a subsystem which
+// is needed for this test so System.out.print() was used more directly.
+// And related note that Command factories cannot be "static" since they require the subsystem
+// instance ("this"; implied in this example by the runOnce() command).

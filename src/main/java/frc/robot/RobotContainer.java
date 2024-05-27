@@ -60,7 +60,7 @@ public class RobotContainer {
     configureDefaultCommands();
 
     if(logCommands) configureLogging();
-    
+
 //FIXME research start of checking requirements if that verification is added to all the disjoint methods
     var cmd1 = waitSeconds(1.);
     var req1 = cmd1.getRequirements();
@@ -294,20 +294,6 @@ public class RobotContainer {
       groupDisjointTest[C].testDuration(1, 0.6).asProxy()
     );
 
-  // public final Command testDeadline =
-  //   deadline(
-  //     sequence(groupDisjointTest[A].testDuration(1, 0.24)),
-  //     sequence(groupDisjointTest[B].testDuration(1, 0.12)),
-  //     sequence(groupDisjointTest[C].testDuration(1, 0.4))
-  //   );
-
-  // public final Command testDisjointDeadline =
-  //   disjointDeadline(
-  //     disjointSequence(groupDisjointTest[A].testDuration(1, 0.24)),
-  //     disjointSequence(groupDisjointTest[B].testDuration(1, 0.12)),
-  //     disjointSequence(groupDisjointTest[C].testDuration(1, 0.4))
-  //   );
-
   public final Command testDeadline =
     deadline(
       sequence(groupDisjointTest[A].testDuration(1, 0.1), waitSeconds(0.2)),
@@ -342,8 +328,15 @@ public class RobotContainer {
   //     groupedDisjointTest.setTest(1).repeatedly(),
   //     waitSeconds(0.1).andThen(groupedDisjointTest.setTest(2)));
 
-  // public Command testTrigger = TriggeredDisjointSequence.sequence
-  public Command testTrigger = disjointSequence
+  /**
+   * Use triggering of successive jobs
+   * or sequence or disjointSequence.
+   * 
+   * With triggering we only have to fuss with Proxy within each
+   * command as there is no interaction between commands.
+   */
+  public Command allTests = TriggeredDisjointSequence.sequence
+  // public Command allTests = disjointSequence
     (
       // need a "Runnable" as a supplier for the dynamic "count"
       // print Command is static so "count" is the value when the command was made - not run.
@@ -391,98 +384,6 @@ public class RobotContainer {
                 groupDisjointTest[C].removeDefaultCommand();
               })
     );
-  
-  // /**
-  //  * Superseded way to pace several sequential commands.
-  //  * 
-  //  * Easy to code but horrible to maintain since each
-  //  * command has to be fit into the sequence with the
-  //  * right starting and essentially right ending count.
-  //  * 
-  //  * That is really hard to know and takes iterations
-  //  * to adjust the starting counts. If a command is
-  //  * added, then all the subsequant ones have to be
-  //  * moved down.
-  //  * 
-  //  * Use triggering of successive jobs or sequence
-  //  * or disjointSequence.
-  //  * 
-  //  * Triggering is easy to read and we only have to
-  //  * fuss with Proxy withing each command as there is
-  //  * no interaction between commands.
-  //  */
-  // public void testDisjoint() {
-
-  //   if (Robot.count == 10) {
-  //     groupDisjointTest[A].setDefaultCommand();
-  //     groupDisjointTest[B].setDefaultCommand();
-  //     groupDisjointTest[C].setDefaultCommand();
-  //   }
-
-  //   if (Robot.count == 30) {
-  //     System.out.println("\nSTART testSequence " + Robot.count);
-  //     testSequence.andThen(()->System.out.println("\nEND testSequence " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 45) {
-  //     System.out.println("\nSTART testDisjointSequence " + Robot.count);
-  //     testDisjointSequence.andThen(()->System.out.println("\nEND testDisjointSequence " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 60) {
-  //     System.out.println("\nSTART testRepeatingSequence " + Robot.count);
-  //     testRepeatingSequence.andThen(()->System.out.println("\nEND testRepeatingSequence " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 100) {
-  //     System.out.println("\nSTART testDisjointRepeatingSequence " + Robot.count);
-  //     testDisjointRepeatingSequence.andThen(()->System.out.println("\nEND testDisjointRepeatingSequence " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 150) {
-  //     System.out.println("\nSTART testParallel " + Robot.count);
-  //     testParallel.andThen(()->System.out.println("\nEND testParallel " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 250) {
-  //     System.out.println("\nSTART testDisjointParallel " + Robot.count);
-  //     testDisjointParallel.andThen(()->System.out.println("\nEND testDisjointParallel " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 350) {
-  //     System.out.println("\nSTART testManualDisjointParallel " + Robot.count);
-  //     testManualDisjointParallel.andThen(()->System.out.println("\nEND testManualDisjointParallel " + Robot.count)).schedule();
-  //   }
-  //   if (Robot.count == 450) {
-  //     System.out.println("\nSTART testDeadlineParallel " + Robot.count);
-  //     testDeadline.andThen(()->System.out.println("\nEND testDeadlineParallel " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 470) {
-  //     System.out.println("\nSTART testDisjointDeadlineParallel " + Robot.count);
-  //     testDisjointDeadline.andThen(()->System.out.println("\nEND testDisjointDeadlineParallel " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count ==500) {
-  //     System.out.println("\nSTART testRaceParallel " + Robot.count);
-  //     testRace.andThen(()->System.out.println("\nEND testRaceParallel " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 535) {
-  //     System.out.println("\nSTART testDisjointRaceParallel " + Robot.count);
-  //     testDisjointRace.andThen(()->System.out.println("\nEND testDisjointRaceParallel " + Robot.count)).schedule();
-  //   }
-
-  //   if (Robot.count == 555) {
-  //     // stop default commands to stop the output
-  //     CommandScheduler.getInstance().cancel(groupDisjointTest[A].getDefaultCommand());
-  //     CommandScheduler.getInstance().cancel(groupDisjointTest[B].getDefaultCommand());
-  //     CommandScheduler.getInstance().cancel(groupDisjointTest[C].getDefaultCommand());
-  //     groupDisjointTest[A].removeDefaultCommand();
-  //     groupDisjointTest[B].removeDefaultCommand();
-  //     groupDisjointTest[C].removeDefaultCommand();
-  //   }
-  // }
 
   /*********************************************************************************************************/
   /*********************************************************************************************************/
@@ -548,7 +449,7 @@ public class RobotContainer {
     new ParallelDeadlineGroup(deadline, otherCommands); // check parallel deadline constraints
     CommandScheduler.getInstance().removeComposedCommand(deadline);
     for (Command cmd : otherCommands) CommandScheduler.getInstance().removeComposedCommand(cmd);
-    return deadline(deadline.asProxy(), proxyAll(otherCommands));
+    return deadline(deadline, proxyAll(otherCommands));
   }
 
   /**
@@ -560,6 +461,8 @@ public class RobotContainer {
    * @see ParallelRaceGroup
    */
   public static Command disjointRace(Command... commands) {
+    new ParallelRaceGroup(commands); // check parallel constraints
+    for (Command cmd : commands) CommandScheduler.getInstance().removeComposedCommand(cmd);
     return race(proxyAll(commands));
   }
 
@@ -578,8 +481,8 @@ public class RobotContainer {
    * @see #parallel(Command...) use parallel() to invoke group parallel behavior
    */
   public static Command disjointParallel(Command... commands) {
-     new ParallelCommandGroup(commands); // check parallel constraints
-     for (Command cmd : commands) CommandScheduler.getInstance().removeComposedCommand(cmd);
+    new ParallelCommandGroup(commands); // check parallel constraints
+    for (Command cmd : commands) CommandScheduler.getInstance().removeComposedCommand(cmd);
     return parallel(proxyAll(commands));
   }
 
@@ -845,70 +748,3 @@ END testDisjointRaceParallel 445
 
 AdBdCdAdBdCdAdBdCd
  */
-
-
- /*
-with deadline partial proxy
-
-START testSequence 0
-AdBdCdA1BdCdBdCdBdCdBdCdBdCdBdCdBdCdA2BdCd
-END testSequence 11
-AdBdCdAdBdCd
-START testDisjointSequence 13
-AdBdCdAdBdCdAdBdCdA1BdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdA2BdCdAdBdCd
-END testDisjointSequence 26
-AdBdCdAdBdCd
-START testRepeatingSequence 28
-AdBdCdAdBdCdAdBdCdA1A1A1B1B1B1C1C1C1A1A1A1A1B1B1B1C1C1C1A1A1A1A1B1B1
-END testRepeatingSequence 56
-AdBdCdAdBdCd
-START testDisjointRepeatingSequence 58
-AdBdCdAdBdCdAdBdCdA1BdCdA1BdCdA1BdCdAdBdCdAdB1CdAdB1CdAdB1CdAdBdCdAdBdC1AdBdC1AdBdC1AdBdCdAdBdCdA1B1CdA1B1CdA1B1CdAdBdCdAdBdC1AdBdC1AdBdC1AdBdCdAdBdCdA1B1CdA1B1CdA1B1CdAdBdCd
-END testDisjointRepeatingSequence 87
-AdBdCdAdBdCd
-START testParallel 89
-AdBdCdAdBdCdAdBdCdB1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1B1B1B1B1B1B1A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2B2B2B2B2B2B2B2B2
-END testParallel 181
-AdBdCdAdBdCd
-START testDisjointParallel 183
-AdBdCdAdBdCdAdBdCdAdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdBdCdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdA1B1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdBdCdAdBdCdAdBdCd
-END testDisjointParallel 278
-AdBdCdAdBdCd
-START testManualDisjointParallel 280
-AdBdCdAdBdCdAdBdCdAdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdBdCdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Warning at edu.wpi.first.wpilibj.IterativeRobotBase.printLoopOverrunMessage(IterativeRobotBase.java:412): Loop time of 0.02s overrun
-
-CdWarning at edu.wpi.first.wpilibj.Tracer.lambda$printEpochs$0(Tracer.java:62):         teleopPeriodic(): 0.000036s
-        SmartDashboard.updateValues(): 0.000018s
-        robotPeriodic(): 0.028567s
-        LiveWindow.updateValues(): 0.000001s
-        Shuffleboard.update(): 0.000003s
-        simulationPeriodic(): 0.000006s
-
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdBdCd
-END testManualDisjointParallel 374
-AdBdCdAdBdCd
-START testDeadlineParallel 376
-AdBdCdAdBdCdAdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1C1C1C1C1C1C1C1C1C1C1C1
-END testDeadlineParallel 396
-AdBdCdAdBdCd
-
-START testDisjointDeadlineParallel 398
-AdBdCdAdBdCdAdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1
-END testDisjointDeadlineParallel 421
-
-AdBdCdAdBdCd
-
-START testDisjointDeadlineParallelpartialProxy 423
-AdBdCdAdBdCdAdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1B1C1BdC1BdC1BdC1BdC1BdC1BdC1BdC1BdC1BdC1AdBdC1
-END testDisjointDeadlineParallelpartialProxy 443
-
-AdBdCdAdBdCd
-START testRaceParallel 445
-AdBdCdAdBdCdAdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1BdCdA1BdCdA1BdCdA1BdCdA1BdCdA1BdCdA1BdCdAdBdCd
-END testRaceParallel 462
-AdBdCdAdBdCd
-START testDisjointRaceParallel 464
-AdBdCdAdBdCdAdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1BdCdA1BdCdA1BdCdA1BdCdA1BdCdA1BdCdAdBdCdAdBdCd
-END testDisjointRaceParallel 482
-AdBdCdAdBdCdAdBdCd
-  */
