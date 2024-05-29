@@ -18,10 +18,11 @@ import frc.robot.Color;
 import frc.robot.LEDPattern;
 import frc.robot.subsystems.RobotSignals.LEDView;
 
-public class TargetVisionSubsystem extends SubsystemBase {
+public class TargetVision extends SubsystemBase {
 
   private final LEDView robotSignals;
   private final CommandXboxController operatorController;
+  
   public final Trigger targetAcquired = new Trigger(this::canSeeTarget);
 
   /**
@@ -29,7 +30,7 @@ public class TargetVisionSubsystem extends SubsystemBase {
    * @param robotSignals
    * @param operatorController
    */
-  public TargetVisionSubsystem(LEDView robotSignals, CommandXboxController operatorController) {
+  public TargetVision(LEDView robotSignals, CommandXboxController operatorController) {
 
     this.robotSignals = robotSignals;
     this.operatorController = operatorController;

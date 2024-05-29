@@ -4,6 +4,13 @@
 
 package frc.robot;
 
+/**
+ * Create subsystems, triggers, and commands; bind buttons to commands and triggers;
+ * define command logging;, manage the details of what is periodically processed before
+ * and after the command scheduler loop; - everything until it got too big and some
+ * logical splits to other classes had to be made.
+ */
+
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 
@@ -17,10 +24,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.AchieveHueGoal;
 import frc.robot.subsystems.GroupDisjointTest;
 import frc.robot.subsystems.HistoryFSM;
-import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.RobotSignals.LEDPatternSupplier;
-import frc.robot.subsystems.TargetVisionSubsystem;
+import frc.robot.subsystems.TargetVision;
 
 public class RobotContainer {
 
@@ -30,8 +37,8 @@ public class RobotContainer {
     // define all the subsystems
     private int operatorControllerPort = 0; 
     private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
-    private final IntakeSubsystem intake;
-    private final TargetVisionSubsystem vision;
+    private final Intake intake;
+    private final TargetVision targetVision;
     private final HistoryFSM historyFSM;
     private final AchieveHueGoal achieveHueGoal;
     private final RobotSignals robotSignals; // container and creator of all the LEDView subsystems
@@ -40,8 +47,8 @@ public class RobotContainer {
     public RobotContainer() {
 
         robotSignals = new RobotSignals(1);
-        intake = new IntakeSubsystem(robotSignals.Main, operatorController);
-        vision = new TargetVisionSubsystem(robotSignals.Top, operatorController);
+        intake = new Intake(robotSignals.Main, operatorController);
+        targetVision = new TargetVision(robotSignals.Top, operatorController);
         historyFSM = new HistoryFSM(robotSignals.HistoryDemo, operatorController);
         achieveHueGoal = new AchieveHueGoal(robotSignals.AchieveHueGoal);
 
@@ -179,7 +186,7 @@ public class RobotContainer {
     public void beforeCommands() {
 
         intake.beforeCommands();
-        vision.beforeCommands();
+        targetVision.beforeCommands();
         robotSignals.beforeCommands();
         historyFSM.beforeCommands();
         achieveHueGoal.beforeCommands();
@@ -196,25 +203,10 @@ public class RobotContainer {
     public void afterCommands() {
 
         intake.afterCommands();
-        vision.afterCommands();
+        targetVision.afterCommands();
         robotSignals.afterCommands();
         historyFSM.afterCommands();
         achieveHueGoal.afterCommands();
         groupDisjointTest.afterCommands();
     }
 }
-
-// parking lot
-
-//     { // junk
-// // research start of checking requirements if that verification must be added to all the disjoint methods
-//     var cmd1 = waitSeconds(1.);
-//     var req1 = cmd1.getRequirements();
-//     if (!req1.isEmpty()) cmd1 = cmd1.asProxy();
-//     var cmd2 = groupDisjoint[0].testDuration(1, 0.);
-//     var req2 = cmd2.getRequirements();
-//     if (!req2.isEmpty()) cmd2 = cmd2.asProxy();
-//     System.out.println(req1 + " " + req2);
-//     System.out.println(cmd1.getRequirements() + " " + cmd2.getRequirements());
-//     }
-//   }

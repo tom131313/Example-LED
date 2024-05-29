@@ -18,13 +18,14 @@ import frc.robot.Color;
 import frc.robot.LEDPattern;
 import frc.robot.subsystems.RobotSignals.LEDView;
 
-public class IntakeSubsystem extends SubsystemBase {
+public class Intake extends SubsystemBase {
   
   private final LEDView robotSignals;
   private final CommandXboxController operatorController;
+  
   public final Trigger gamePieceAcquired = new Trigger(this::hasGamePieceAcquired);
 
-  public IntakeSubsystem(LEDView robotSignals, CommandXboxController operatorController) {
+  public Intake(LEDView robotSignals, CommandXboxController operatorController) {
 
     this.robotSignals = robotSignals;
     this.operatorController = operatorController;

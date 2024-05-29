@@ -1,3 +1,7 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems;
 
 /* 
@@ -44,12 +48,20 @@ public class GroupDisjointTest {
     private final int B = 1;
     private final int C = 2;
 
-    public static Command disjointedSequenceTestJob; // Command to be scheduled for running test job
-       // This is "static" so it can be used more simply in Robot.java.
-       // That means only one instance of this class should be made since all instances would
-       // use the same variable for the tests. Make this class a singleton to make sure.
+    // This is "static" so it can be used simply in Robot.java.
+    // That means only one instance of this class should be made since all instances would
+    // use the same variable for the tests. Make this class a singleton to make sure.
+    private static Command disjointedSequenceTestJob;
+ 
+    /**
+     * 
+     * @return Command to be scheduled for running test job
+     */
+    public static Command disjointedSequenceTestJob() {
+        return disjointedSequenceTestJob;
+    }
 
-    // singleton class so access to disjointedSequenceTestJob can be static
+    // singleton class so access to disjointedSequenceTestJob can be static safely
     private static GroupDisjointTest single_instance = null;
     private GroupDisjointTest() {
         
@@ -58,6 +70,7 @@ public class GroupDisjointTest {
 
     public static  GroupDisjointTest getInstance()
     {
+
         if (single_instance == null)
             single_instance = new GroupDisjointTest();
  
@@ -86,8 +99,10 @@ public class GroupDisjointTest {
   // Can't use decorators .andThen .alongWith on commands of subsystems needing default
   // within the group - reform as parallel() or sequence().
 
+  // Bug in WPILib "RepeatCommand" causes incorrect results for repeats.
+
   // Add .asProxy() to commands of subsystems needing the default to run in the group.
-  // Could proxyAll() everything but really only needed on commands with required
+  // Could proxyAll() everything but really only need Proxy on commands with required
   // subsystems needing default command to run in the group.
 
     final Command testSequence =
@@ -295,7 +310,7 @@ public class GroupDisjointTest {
   /*********************************************************************************************************/
   /*********************************************************************************************************/
   /*********************************************************************************************************/
-  // The following methods may be included in an upcoming WPILib release
+  // The following methods might be included in an upcoming WPILib release
   /*********************************************************************************************************/
   /*********************************************************************************************************/
   /*********************************************************************************************************/
@@ -398,7 +413,6 @@ public class GroupDisjointTest {
     return parallel(proxyAll(commands));
   }
 
-  // to be included in an upcoming WPILib release
   /**
    * Maps an array of commands by proxying every element using {@link Command#asProxy()}.
    *
@@ -421,7 +435,6 @@ public class GroupDisjointTest {
     }
     return out;
   }
-    
 }
 
 /*

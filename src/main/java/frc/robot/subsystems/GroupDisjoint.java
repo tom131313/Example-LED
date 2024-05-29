@@ -1,3 +1,7 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems;
 
 // General purpose class to create test commands.
@@ -40,10 +44,10 @@ public class GroupDisjoint extends SubsystemBase {
     // processing in periodic I/O should be kept to a minimum to get the best consistent set
     // of I/O. This example is complicated to minimize the large quantity of output possible.
 
-      // output - compressed; persistent values even stale ones
-      boolean compressOutput = false;
+      boolean compressOutput = false; // option selection hiding here: output all or compressed
+
       if (compressOutput)
-      { // process "output" variable
+      { // process "output" variable; count and supress duplicates values; stale, persistent values are also output
 
     // Note that using this periodic output scheme - as implemented - causes the last output
     // value to persist through iterative periods if it hasn't changed. This behavior could be
@@ -69,12 +73,18 @@ public class GroupDisjoint extends SubsystemBase {
 
       outputPrevious = output;
       } // end output compression
-      else       
-      if (outputFresh) {// output - everything; only new values (duplicate values output, too, but only refreshed ones)
+      else
+      // output - everything but only fresh values (duplicate values output, too, but only refreshed ones)
+      if (outputFresh) {
         outputFresh = false;
         System.out.print(output);
       }
     }
+    // note that the Commands.print("testing " + testNumber) does not require a subsystem which
+    // is needed for this test so System.out.print() was used more directly.
+    
+    // And related note that Command factories cannot be "static" since they require the subsystem
+    // instance ("this"; implied in this example by the runOnce() command).
 
     /*
      * Public Commands
@@ -153,7 +163,3 @@ public class GroupDisjoint extends SubsystemBase {
       }
     }
 }
-// note that the Commands.print("testing " + testNumber) does not require a subsystem which
-// is needed for this test so System.out.print() was used more directly.
-// And related note that Command factories cannot be "static" since they require the subsystem
-// instance ("this"; implied in this example by the runOnce() command).

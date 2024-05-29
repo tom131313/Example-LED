@@ -6,35 +6,46 @@
  * Example program that shows a variety of command based and programming
  * "best practices."
  * 
- * Demonstration output is on five sets of ten LEDs to show the program is
+ * Demonstration output is on five sets of ten identical LEDs to show the program is
  * operating; operator input is Xbox controller. The sixth demonstration
- * output is the console "prints."
+ * output is the terminal console "prints."
  * 
- * 1. Target Vision Acquired subsystem output Top LEDView subsystem (runs disabled, too)
- *     default blue;
- *     autonomous mode command dark green (no requirement for Target Vision Acquired);
- *     target vision acquired orange (simulate target acquired by pressing "A" button);
- *     slowly around the color wheel (initiated by pressing "X" button) (no requirement
+ * 1. LED set 1 usage
+ *     Target Vision Acquired subsystem output Top LEDView subsystem (runs disabled, too)
+ *      default blue
+ *      target vision acquired orange (simulate target acquired by pressing "A" button)
+ *     Autonomous mode command dark green (no requirement for Target Vision Acquired)
+ *     Slowly around the color wheel (initiated by pressing "X" button) (no requirement
  *       for Target Vision Acquired)
- * 2. Game Piece Intake Acquired subsystem output Main LEDView subsystem
- *     default cyan;
- *     autonomous mode command light green (no requirement for Game Piece Intake Acquired);
- *     intake game piece acquired magenta fast blink (simulate game piece intake
+ * 
+ * 2. LED set 2 usage
+ *     Game Piece Intake Acquired subsystem output Main LEDView subsystem
+ *      default cyan
+ *      intake game piece acquired magenta fast blink (simulate game piece intake
  *       acquired by pressing "B" button)
- * 3. EnableDisable LEDView subsystem
- *     enabled mode green slow blink
- *     disabled mode red slow blink
- * 4. HistoryFSM subsystem HistoryDemo LEDView subsystem
- *     random colors that don't repeat for awhile (history) (initiated by pressing "Y"
+ *     Autonomous mode command light green (no requirement for Game Piece Intake Acquired)
+ * 
+ * 3. LED set 3 usage
+ *     EnableDisable LEDView subsystem
+ *      enabled mode green slow blink
+ *      disabled mode red slow blink
+ * 
+ * 4. LED set 4 usage
+ *     HistoryFSM subsystem HistoryDemo LEDView subsystem
+ *      random colors that don't repeat for awhile (history) (initiated by pressing "Y"
  *       button then self perpetuating) (runs in enabled mode)
- * 5. AchieveHueGoal subsystem output AchieveHueGoal LEDView subsystem
- *     Subsystem based controller runs continuously and responds to a goal setting
+ * 
+ * 5. LED set 5 usage
+ *     AchieveHueGoal subsystem output AchieveHueGoal LEDView subsystem
+ *      Subsystem based controller runs continuously and responds to a goal setting
  *       subsystem. Colors on color wheel position showing PID controller subsystem
  *       converging on a color selected by Xbox right trigger axis (press to start)
- * 6. Disjoint Sequential Group Demo console output initiated by teleop enable mode
- *     Show subsystem default command doesn't run within a group command unless the
- *     command with the subsystem requirement is disjointed from the group by using
- *     a Proxy structure. (runs in teleop mode)
+ * 
+ * 6. Console Terminal usage
+ *     Disjoint Sequential Group Demo console output initiated by teleop enable mode
+ *      Show subsystem default command doesn't run within a group command unless the
+ *      command with the subsystem requirement is disjointed from the group by using
+ *      a Proxy structure. (runs in teleop mode)
  * 
  * All commands are interruptible.
  * Some button presses are debounced.
@@ -68,11 +79,12 @@
  * Goal setting subsystem for a resource
  * Triggers available for other systems to use
  * Default commands can either run or not run within a sequential group depending on how the group is defined using Proxy
+ * Commands run in sequenced by triggering succesive commands
  */
 
 /* Default Commands can be useful but they normally do not run within grouped
- *   commands even if their associated subsystem is not active at all times within
- *  the group.
+ * commands even if their associated subsystem is not active at all times within
+ * the group.
  * 
  *  There are several possibilites to accomodate that restriction:
  *  1. do without default commands at any time
@@ -210,7 +222,7 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 
-    GroupDisjointTest.disjointedSequenceTestJob.schedule();
+    GroupDisjointTest.disjointedSequenceTestJob().schedule();
   }
 
   @Override

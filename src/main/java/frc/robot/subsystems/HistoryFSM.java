@@ -1,6 +1,12 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems;
 
-/*
+/**
+ * Display a random color signal periodically and don't reuse the same color too soon (if reasonably possible).
+ *
  * This is a FSM that depends on the current state, the transition event trigger, and the historical previous states.
  * 
  * This demonstrates a command that calls another command upon completion by setting up a trigger.
@@ -28,10 +34,10 @@ import frc.robot.subsystems.RobotSignals.LEDView;
 public class HistoryFSM extends SubsystemBase {
 
     private final LEDView robotSignals;
-    Random rand = new Random();
+    private Random rand = new Random();
     
     // Periodic output variable used for each run of "afterCommands()"
-    LEDPattern persistentPatternDemo = LEDPattern.solid(Color.kBlack); // this is used before command to set it is run so start with LEDs off
+    private LEDPattern persistentPatternDemo = LEDPattern.solid(Color.kBlack); // this is used before command to set it is run so start with LEDs off
 
     //  Add a color [hue number as subscript] and last time used to the history
     //  so that color isn't used again during a lockout period.
@@ -43,10 +49,8 @@ public class HistoryFSM extends SubsystemBase {
 
     //  Time data is saved for how long a color is to persist in the display.
 
-    long[] lastTimeHistoryOfColors = new long[180];
-
-    Color persistentCurrentColor = new Color(); // color to be seen that we want to persist through multiple iterations
-    long nextTime = Long.MAX_VALUE; // initialize so the time doesn't trigger anything until the "Y" button is pressed
+    private long[] lastTimeHistoryOfColors = new long[180];
+    private long nextTime = Long.MAX_VALUE; // initialize so the time doesn't trigger anything until the "Y" button is pressed
     private Trigger timeOfNewColor = new Trigger(this::timesUp);
 
     public HistoryFSM(LEDView robotSignals, CommandXboxController operatorController) {
@@ -77,7 +81,7 @@ public class HistoryFSM extends SubsystemBase {
 
     /**
      * this command sets a color and quits immediately assuming the color persists
-     * somehow (in "persistentCurrentColor") until the next color is later requested.
+     * somehow (in "persistentPatternDemo") until the next color is later requested.
      * 
      * <p>Set a random color that hasn't been used in the last "colorLockoutPeriod"
      */
