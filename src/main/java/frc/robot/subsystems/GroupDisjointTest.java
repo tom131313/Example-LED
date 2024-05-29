@@ -183,9 +183,9 @@ public class GroupDisjointTest {
 
     final Command testRace =
       race(
-        disjointSequence(groupDisjoint[A].testDuration(1, 0.24)),
-        disjointSequence(groupDisjoint[B].testDuration(1, 0.12), waitSeconds(0.3)),
-        disjointSequence(groupDisjoint[C].testDuration(1, 0.12), waitSeconds(0.3))
+        sequence(groupDisjoint[A].testDuration(1, 0.24)),
+        sequence(groupDisjoint[B].testDuration(1, 0.12), waitSeconds(0.3)),
+        sequence(groupDisjoint[C].testDuration(1, 0.12), waitSeconds(0.3))
       );
 
     final Command testDisjointRace =
@@ -511,10 +511,7 @@ END testDisjointDeadlineParallel
 AdBdCd
 
 START testRaceParallel
-AdBdCd
-A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1
-A1BdCdA1BdCdA1BdCdA1BdCdA1BdCd
-AdBdCd
+AdBdCdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1A1A1A1A1A1
 END testRaceParallel
 
 AdBdCd
