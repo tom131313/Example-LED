@@ -33,7 +33,7 @@ public class AchieveHueGoal {
     // There is no running command to accept new setpoints until
     // the Xbox right trigger axis is pressed.
 
-    private final double kP = 0.03;
+    private final double kP = 0.025;
     private final double kI = 0.0;
     private final double kD = 0.0;
     private PIDController HueController = new PIDController(kP, kI, kD);
