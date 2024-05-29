@@ -281,12 +281,25 @@ public class RobotContainer {
       )
       .repeatedly().withTimeout(0.5);
 
-    // // Use of Proxy hides the error of having two commands running at once for the same subsystem.
-    // // Check for such errors by removing the Proxy and constructing the command.
-    // // Unhandled exception: java.lang.IllegalArgumentException:
-    // //    Multiple commands in a parallel composition cannot require the same subsystems
-    // final Command testParallelBadresults =
-    //   parallel( // proxy hides same subsystem used twice at the same time; no error message but erroneous results
+    final Command testDisjointRepeatingSequenceBlocked =
+      repeatingDisjointSequence(
+        groupDisjointTest[A].testDuration(1, 0.05),
+        groupDisjointTest[B].testDuration(1, 0.05),
+        groupDisjointTest[C].testDuration(1, 0.05)
+      )
+      .withTimeout(0.5);
+
+    // Illegal - Multiple commands in a parallel composition cannot require the same subsystems.
+    // Throws an error message.
+    // public final Command testParallel =
+    //   parallel(
+    //     groupedDisjointTest[A].setTest(1).repeatedly(),
+    //     waitSeconds(0.1).andThen(groupedDisjointTest[A].setTest(2)));
+
+    // Use of Proxy hides the error of having two commands running at once for the same subsystem.
+    // No error message but erroneous results.
+    // final Command testParallel =
+    //   parallel(
     //     groupDisjointTest[A].testDuration(1, 0.1).asProxy(),
     //     groupDisjointTest[A].testDuration(2, 0.1).asProxy()
     //   );
@@ -349,12 +362,6 @@ public class RobotContainer {
         disjointSequence(groupDisjointTest[C].testDuration(1, 0.12), waitSeconds(0.3))
       );
 
-    // illegal - Multiple commands in a parallel composition cannot require the same subsystems
-    // public final Command testParallel =
-    //   parallel(
-    //     groupedDisjointTest.setTest(1).repeatedly(),
-    //     waitSeconds(0.1).andThen(groupedDisjointTest.setTest(2)));
-
     Command[] allTests =
     {
       // Printing a static message so use the Commands.print. If message contained variables, then
@@ -377,9 +384,12 @@ public class RobotContainer {
       print("\nSTART testRepeatingSequence"),
        testRepeatingSequence,
         print("\nEND testRepeatingSequence"),
-      print("\nSTART testDisjointRepeatingSequence - incorrect results - not supported"),
+      print("\nSTART testDisjointRepeatingSequence - incorrect results - library bug"),
        testDisjointRepeatingSequence,
-        print("\nEND testDisjointRepeatingSequence - incorrect results - not supported"),
+        print("\nEND testDisjointRepeatingSequence - incorrect results - library bug"),
+    //  print("\nSTART testDisjointRepeatingSequence - blocked - not supported"),
+    //    testDisjointRepeatingSequenceBlocked,
+    //     print("\nEND testDisjointRepeatingSequence - blocked - not supported"),
       print("\nSTART testParallel"),
        testParallel,
         print("\nEND testParallel"),
@@ -417,7 +427,7 @@ public class RobotContainer {
       disjointedSequenceTestJob = TriggeredDisjointSequence.sequence(allTests);
     }
     else {
-      disjointedSequenceTestJob = disjointSequence (allTests);
+      disjointedSequenceTestJob = disjointSequence(allTests);
     }
   }
 
@@ -445,7 +455,7 @@ public class RobotContainer {
    * Include all classes that have periodic outputs
    * 
    * There are clever ways to register classes so they are automatically
-   * included in a list but this example is simplistic - remember to type them in.
+   * included in a list but this example isn't it; simplistic - remember to type them in.
    */
   public void afterCommands() {
 
@@ -462,7 +472,7 @@ public class RobotContainer {
   /*********************************************************************************************************/
   /*********************************************************************************************************/
   /*********************************************************************************************************/
-  // anticipated to be included in an upcoming WPILib release
+  // The following methods may be included in an upcoming WPILib release
   /*********************************************************************************************************/
   /*********************************************************************************************************/
   /*********************************************************************************************************/
@@ -502,7 +512,7 @@ public class RobotContainer {
    * @see Command#repeatedly() 
    */
   public static Command repeatingDisjointSequence(Command... commands) {
-    throw new IllegalArgumentException("RepeatCommand doesn't support use of required ProxyCommand");
+    throw new IllegalArgumentException("RepeatCommand bug prevents correct operation of asProxy/ProxyCommand");
     // return disjointSequence(commands).repeatedly();
   }
 

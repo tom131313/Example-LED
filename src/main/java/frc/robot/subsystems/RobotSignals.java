@@ -115,19 +115,7 @@ public interface LEDPatternSupplier {
      */
 
     /**
-     * Suggestion is don't use the setDefaultCommand because default commands are not
-     * run inside composed commands except if using "disjointSequence()".
-     * 
-     * If you insist, then recommendation is don't use more than one default command
-     * because it may not be obvious which default command is active (last one set is
-     * active).
-     */
-
-    // If a subsystem may have one or no default command then use the following:
-    // You're on your own to remember if there is a default command set or not.
-  
-    /**
-     * Allow one (or none) default command to be set.
+     * Example of how to allow one (or none) default command to be set.
      */
     @Override
     public void setDefaultCommand(Command def) {
@@ -140,18 +128,6 @@ public interface LEDPatternSupplier {
         super.setDefaultCommand(def);
       }
     }
-
-  // If a subsystem must not have a default command then use the following:
-
-  // /**
-  //  * Disallow default command
-  //  * This prevents accidentally assuming the default command will run in composite commands which it wont.
-  //  */
-  // @Override
-  // public void setDefaultCommand(Command def) {
-
-  //     throw new IllegalArgumentException("Default Command not allowed");
-  // }
 
     /**
      * Put an LED Pattern into the view

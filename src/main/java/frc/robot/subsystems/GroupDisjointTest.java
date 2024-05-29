@@ -81,16 +81,7 @@ public class GroupDisjointTest extends SubsystemBase {
      */
 
     /**
-     * Recommendation is don't use the setDefaultCommand because default commands are not
-     * run inside composed commands. Using "disjointSequence", etc. (ProxyCommands) can
-     * mitigate this problem since it allows the default command to run when individual
-     * commands end.
-     * If you use a default command then recommendation is don't use more than one default
-     * because it may not be obvious which default command is active (last one set is active).
-     * 
-     * Example code below to allow no more than one call to this set default command of the
-     * resource/subsystem.
-     * You're on your own to remember if there is a default command set or not.
+     * Example of how to allow one (or none) default command to be set.
      */
     @Override
     public void setDefaultCommand(Command def) {

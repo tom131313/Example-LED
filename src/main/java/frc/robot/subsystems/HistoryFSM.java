@@ -33,15 +33,15 @@ public class HistoryFSM extends SubsystemBase {
     // Periodic output variable used for each run of "afterCommands()"
     LEDPattern persistentPatternDemo = LEDPattern.solid(Color.kBlack); // this is used before command to set it is run so start with LEDs off
 
-    //    Add a color [hue number as subscript] and last time used to the history
+    //  Add a color [hue number as subscript] and last time used to the history
     //  so that color isn't used again during a lockout period.
 
-    //    Make the history in as narrow of scope as possible. For this simple example the scope is perfectly narrow
+    //  Make the history in as narrow of scope as possible. For this simple example the scope is perfectly narrow
     //  (this instance scope) since the history doesn't depend on any values from other subsystems.
 
-    //    Also saved from historical values are the "current" color so it persists through multiple iterations.
+    //  Also saved from historical values are the "current" color so it persists through multiple iterations.
 
-    //    Time data is saved for how long a color is to persist in the display.
+    //  Time data is saved for how long a color is to persist in the display.
 
     long[] lastTimeHistoryOfColors = new long[180];
 
@@ -57,15 +57,18 @@ public class HistoryFSM extends SubsystemBase {
         // Trigger if it's time for a new color or the operator pressed their "Y" button
         timeOfNewColor.or(operatorController.y().debounce(.04)).onTrue(runOnce(this::getHSV)/*.ignoringDisable(true)*/);
     }
+
     /**
+     * Elapsed Timer determines if in the color change lockout period or not.
+     * Resets automatically.
      * 
      * @return has time elapsed
      */
     private boolean timesUp() {
 
         if( System.currentTimeMillis() >= nextTime) {
-            nextTime = Long.MAX_VALUE; // reset; if a command is running it'll set the right time. If it isn't running then
-                                       // wait for "Y" press
+            nextTime = Long.MAX_VALUE; // reset; if a command is running that will set the correct "nextTime".
+                                       // If it isn't running, then wait for "Y" press
             // this locks-out automatic restarting on disable to enable change; "Y" must be pressed to get it started again.
             return true;
         }
@@ -104,9 +107,7 @@ public class HistoryFSM extends SubsystemBase {
     }
 
     /**
-     * Disallow default command
-     * This prevents accidentally assuming the default command will run in composite commands which it wont.
-     * Or "disjointSequence()" could be used. Default command not used in this example.
+     * Example of how to disallow default command
      */
     @Override
     public void setDefaultCommand(Command def) {

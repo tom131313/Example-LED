@@ -24,6 +24,11 @@ public class TargetVisionSubsystem extends SubsystemBase {
   private final CommandXboxController operatorController;
   public final Trigger targetAcquired = new Trigger(this::canSeeTarget);
 
+  /**
+   * 
+   * @param robotSignals
+   * @param operatorController
+   */
   public TargetVisionSubsystem(LEDView robotSignals, CommandXboxController operatorController) {
 
     this.robotSignals = robotSignals;
@@ -31,6 +36,10 @@ public class TargetVisionSubsystem extends SubsystemBase {
     targetAcquired.whileTrue(targetAcquired());
   }
   
+  /**
+   * 
+   * @return
+   */
   public Command targetAcquired() {
 
     LEDPattern targetAcquiredSignal = LEDPattern.solid(Color.kOrange);
@@ -43,15 +52,19 @@ public class TargetVisionSubsystem extends SubsystemBase {
       .ignoringDisable(true); // ignore disable true must be here on the composite; on the first command doesn't do anything
   }
 
+  /**
+   * 
+   * @return
+   */
   private boolean canSeeTarget() {
     
     return operatorController.getHID().getAButton(); // fake event source for target acquired
   }
 
   /**
-   * Disallow default command
-   * This prevents accidentally assuming the default command will run in composite commands which it wont
-   * unless using "disjointSequence()".
+   * Example of how to disallow default command
+   *  
+   * @param def default command
    */
   @Override
   public void setDefaultCommand(Command def) {

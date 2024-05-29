@@ -46,8 +46,7 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   /**
-   * Disallow default command
-   * This prevents accidentally assuming the default command will run in composite commands which it wont.
+   * Example of how to disallow default command
    */
   @Override
   public void setDefaultCommand(Command def) {

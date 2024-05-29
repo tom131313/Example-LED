@@ -96,10 +96,7 @@ public class AchieveHueGoal {
         }
 
         /**
-         * Disallow default command
-         * This prevents accidentally assuming the default command will run in composite commands which it
-         * wont although use of "disjointSequence()" mitigates this problem since it allows the default
-         * command to run at the end of each component command in the sequence.
+         * Example of how to disallow default command
          */
         @Override
         public void setDefaultCommand(Command def) {
