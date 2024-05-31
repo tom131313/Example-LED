@@ -102,8 +102,8 @@ public class GroupDisjointTest {
   // Bug in WPILib "RepeatCommand" causes incorrect results for repeats.
 
   // Add .asProxy() to commands of subsystems needing the default to run in the group.
-  // Could proxyAll() everything but really only need Proxy on commands with required
-  // subsystems needing default command to run in the group.
+  // Better to use proxyAll() to help add safely .asProxy() only to commands that have
+  // requirements of subsystems needing default command to run in the group.
 
     final Command testSequence =
       sequence(
@@ -147,9 +147,9 @@ public class GroupDisjointTest {
     // Use of Proxy hides the error of having two commands running at once for the same subsystem.
     // No error message but erroneous results.
     // final Command testParallel =
-    //   parallel(
-    //     groupDisjoint[A].testDuration(1, 0.1).asProxy(),
-    //     groupDisjoint[A].testDuration(2, 0.1).asProxy()
+    //   parallel(proxyAll(
+    //     groupDisjoint[A].testDuration(1, 0.1),
+    //     groupDisjoint[A].testDuration(2, 0.1))
     //   );
 
     final Command testParallel =
@@ -168,10 +168,10 @@ public class GroupDisjointTest {
           groupDisjoint[B].testDuration(1, 0.74),
           disjointParallel(
             groupDisjoint[A].testDuration(1, 0.84),
-            groupDisjoint[B].testDuration(1, 1.))),
+            groupDisjoint[B].testDuration(2, 1.))),
         groupDisjoint[C].testDuration(1, 0.6)
       );
-
+    
     final Command testManualDisjointParallel =
       parallel(
         sequence(
@@ -410,28 +410,30 @@ public class GroupDisjointTest {
     for (Command cmd : otherCommands) {
       CommandScheduler.getInstance().removeComposedCommand(cmd);
     }
-    return deadline(deadline.asProxy(), proxyAll(otherCommands));
+    if ( ! deadline.getRequirements().isEmpty()) {
+      deadline = deadline.asProxy();
+    }
+    return deadline(deadline, proxyAll(otherCommands));
   }
 
   /**
-   * Maps an array of commands by adding proxy to every element using {@link Command#asProxy()}.
+   * Maps an array of commands by adding proxy to every element that has requirements using {@link Command#asProxy()}.
    *
    * <p>This is useful to ensure that default commands of subsystems within a command group are
    * still triggered despite command groups requiring the union of their members' requirements
    *
-   * <p>Example usage for creating an auto for a robot that has a drivetrain and arm:
-   *
-   * <pre>
-   * {@code var auto = sequence(proxyAll(drive.move(), arm.score()));}
-   * </pre>
-   *
    * @param commands an array of commands
-   * @return an array of commands to run by proxy
+   * @return an array of commands to run by proxy if a command has requirements
    */
   public static Command[] proxyAll(Command... commands) {
     Command[] out = new Command[commands.length];
     for (int i = 0; i < commands.length; i++) {
-      out[i] = commands[i].asProxy();
+      if (commands[i].getRequirements().isEmpty()) {
+        out[i] = commands[i];
+      }
+      else {
+        out[i] = commands[i].asProxy();
+      }
     }
     return out;
   }
