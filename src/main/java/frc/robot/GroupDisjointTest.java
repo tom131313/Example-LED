@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot;
 
 /* 
   * Sample program to demonstrate loose coupling of Commands in a sequential grouping.
@@ -31,7 +31,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import frc.robot.TriggeredDisjointSequence;
+import frc.robot.subsystems.GroupDisjoint;
 
 public class GroupDisjointTest {
 
