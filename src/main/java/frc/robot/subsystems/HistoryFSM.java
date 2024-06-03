@@ -157,6 +157,7 @@ public class HistoryFSM extends SubsystemBase {
 
         // counter++;
         // if(counter%600 == 0) {
+        //     System.out.println("current time " + System.currentTimeMillis());
         //     for(int i = 0; i < lastTimeHistoryOfColors.size(); i++)
         //     System.out.println(i + " " + lastTimeHistoryOfColors.get(i).toLongString());
         // }
