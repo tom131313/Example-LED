@@ -39,7 +39,8 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 public class GroupDisjointTest {
 
     // runtime options; too rigid - could be made easier to find and change but this is just a "simple" example program
-    private final boolean m_UseTriggeredJob = true; // select runtime option run tests as Triggered job or run as Commands.sequence
+    private final boolean m_UseTriggeredJob = true; // select runtime option run tests as
+                                                    // Triggered job or run as Commands.sequence
         
     private final GroupDisjoint[] m_GroupDisjoint = // subsystems that provide the requirements for testing
             {
@@ -75,8 +76,9 @@ public class GroupDisjointTest {
     public static  GroupDisjointTest getInstance()
     {
 
-        if (single_instance == null)
+        if (single_instance == null) {
             single_instance = new GroupDisjointTest();
+        }
  
         return single_instance;
     }
@@ -111,11 +113,17 @@ public class GroupDisjointTest {
 
     final Command testSequence =
       sequence(
-        m_GroupDisjoint[m_A].testDuration(1, 0.), waitSeconds(0.1), m_GroupDisjoint[m_A].testDuration(2, 0.));
+        m_GroupDisjoint[m_A].testDuration(1, 0.0),
+        waitSeconds(0.1),
+        m_GroupDisjoint[m_A].testDuration(2, 0.0)
+      );
 
     final Command testDisjointSequence =
       disjointSequence(
-        m_GroupDisjoint[m_A].testDuration(1, 0.), waitSeconds(0.1), m_GroupDisjoint[m_A].testDuration(2, 0.));
+        m_GroupDisjoint[m_A].testDuration(1, 0.0),
+        waitSeconds(0.1),
+        m_GroupDisjoint[m_A].testDuration(2, 0.0))
+      ;
 
     final Command testRepeatingSequence =
       sequence(
@@ -162,7 +170,7 @@ public class GroupDisjointTest {
           m_GroupDisjoint[m_B].testDuration(1, 0.74),
           parallel(
             m_GroupDisjoint[m_A].testDuration(1, 0.84),
-            m_GroupDisjoint[m_B].testDuration(2, 1.))),
+            m_GroupDisjoint[m_B].testDuration(2, 1.0))),
         m_GroupDisjoint[m_C].testDuration(1, 0.6)
       );
 
@@ -172,7 +180,7 @@ public class GroupDisjointTest {
           m_GroupDisjoint[m_B].testDuration(1, 0.74),
           disjointParallel(
             m_GroupDisjoint[m_A].testDuration(1, 0.84),
-            m_GroupDisjoint[m_B].testDuration(2, 1.))),
+            m_GroupDisjoint[m_B].testDuration(2, 1.0))),
         m_GroupDisjoint[m_C].testDuration(1, 0.6)
       );
     
@@ -182,7 +190,7 @@ public class GroupDisjointTest {
           m_GroupDisjoint[m_B].testDuration(1, 0.74).asProxy(),
           parallel(
             m_GroupDisjoint[m_A].testDuration(1, 0.84).asProxy(),
-            m_GroupDisjoint[m_B].testDuration(2, 1.).asProxy())),
+            m_GroupDisjoint[m_B].testDuration(2, 1.0).asProxy())),
         m_GroupDisjoint[m_C].testDuration(1, 0.6).asProxy()
       );
 
@@ -315,13 +323,7 @@ public class GroupDisjointTest {
     m_GroupDisjoint[2].afterCommands();
   }
 
-  /*********************************************************************************************************/
-  /*********************************************************************************************************/
-  /*********************************************************************************************************/
   // The following methods might be included in an upcoming WPILib release
-  /*********************************************************************************************************/
-  /*********************************************************************************************************/
-  /*********************************************************************************************************/
 
   /**
    * Runs individual commands in a series without grouped behavior.
@@ -377,7 +379,9 @@ public class GroupDisjointTest {
    */
   public static Command disjointParallel(Command... commands) {
     new ParallelCommandGroup(commands); // check parallel constraints
-    for (Command cmd : commands) CommandScheduler.getInstance().removeComposedCommand(cmd);
+    for (Command cmd : commands) {
+      CommandScheduler.getInstance().removeComposedCommand(cmd);
+    }
     return parallel(proxyAll(commands));
   }
 
@@ -393,7 +397,9 @@ public class GroupDisjointTest {
    */
   public static Command disjointRace(Command... commands) {
     new ParallelRaceGroup(commands); // check parallel constraints
-    for (Command cmd : commands) CommandScheduler.getInstance().removeComposedCommand(cmd);
+    for (Command cmd : commands) {
+      CommandScheduler.getInstance().removeComposedCommand(cmd);
+    }
     return race(proxyAll(commands));
   }
 
@@ -494,13 +500,13 @@ AdBdCd
 
 START testDisjointParallel
 AdBdCd
-AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
-AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
+AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
+AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
 AdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1Cd
 AdBdCd
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdAdB2Cd
+A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
+A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
+A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdAdB2Cd
 AdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2Cd
 AdBdCd
 END testDisjointParallel
@@ -509,13 +515,13 @@ AdBdCd
 
 START testManualDisjointParallel
 AdBdCd
-AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
-AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
+AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
+AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1AdB1C1
 AdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1Cd
 AdBdCd
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
-A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
+A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
+A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
+A1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2Cd
 AdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2CdAdB2Cd
 AdBdCd
 END testManualDisjointParallel

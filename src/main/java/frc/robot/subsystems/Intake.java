@@ -28,6 +28,11 @@ public class Intake extends SubsystemBase {
   public final Trigger gamePieceAcquired =
       new Trigger(this::hasGamePieceAcquired);
 
+  /**
+   * 
+   * @param robotSignals Signal Subsystem
+   * @param operatorController Source of fake target of game piece acquired event
+   */
   public Intake(LEDView robotSignals,
       CommandXboxController operatorController) {
 

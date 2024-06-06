@@ -28,8 +28,8 @@ public class TargetVision extends SubsystemBase {
 
   /**
    * 
-   * @param robotSignals
-   * @param operatorController
+   * @param robotSignals Signal Subsystem
+   * @param operatorController Source of fake target acquired event
    */
   public TargetVision(LEDView robotSignals,
       CommandXboxController operatorController) {

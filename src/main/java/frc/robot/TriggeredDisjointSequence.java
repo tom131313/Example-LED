@@ -50,7 +50,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * time all of the subsystems its components require.
  */
 
-public class TriggeredDisjointSequence extends WrapperCommand {
+public final class TriggeredDisjointSequence extends WrapperCommand {
 
     private final InternalButton m_trigger;
 
@@ -104,11 +104,13 @@ public class TriggeredDisjointSequence extends WrapperCommand {
      */
     public static Command sequence(Command... commands) {
 
-        if (commands.length == 0)
-            return null;
+        if (commands.length == 0) {
+            return null;            
+        }
 
-        if (commands.length == 1)
-            return commands[0];
+        if (commands.length == 1) {
+            return commands[0];            
+        }
 
         // all but last command get the new trigger command (augmented) that triggers the next
         // command

@@ -67,14 +67,14 @@ public class HistoryFSM extends SubsystemBase {
     private List<Measure<Time>> lastTimeHistoryOfColors =
             new ArrayList<>(m_ComputerColorWheel);
 
-    private static final double m_BeginningOfTime = 0.;
+    private static final double m_BeginningOfTime = 0.0;
     private static final double m_EndOfTime = Double.MAX_VALUE;
 
     // time the current color display should end and a new color selected
     // initialize so the time doesn't trigger anything until the "Y" button is pressed
     private Measure<Time> m_NextTime = Milliseconds.of(m_EndOfTime);
-    Measure<Time> m_ChangeColorPeriod = Seconds.of(2.); // display color for this long
-    Measure<Time> m_ColorLockoutPeriod = Seconds.of(20.); // try not to reuse a color for this long
+    Measure<Time> m_ChangeColorPeriod = Seconds.of(2.0); // display color for this long
+    Measure<Time> m_ColorLockoutPeriod = Seconds.of(20.0); // try not to reuse a color for this long
     // elapsed timer
     private Trigger m_TimeOfNewColor = new Trigger(this::timesUp);
     private static final double m_DebounceTime = 0.04;
@@ -142,7 +142,7 @@ public class HistoryFSM extends SubsystemBase {
 
         Measure<Time> currentTime = Milliseconds.of(System.currentTimeMillis());
         int randomHue; // to be the next color
-        int loopCounter = 1; // count attempts to find a different hue
+        int loopCounter = 0; // count attempts to find a different hue
         int loopCounterLimit = 20; // limit attempts to find a different hue
         // reasonable limit related to:
         // number of colors, how often colors change, how long to lockout a color.
@@ -158,7 +158,7 @@ public class HistoryFSM extends SubsystemBase {
             }
             // hue used recently so loop to get another hue
             // limit attempts - no infinite loops allowed
-        } while (loopCounter++ < loopCounterLimit);
+        } while (++loopCounter < loopCounterLimit);
 
         m_PersistentPatternDemo =
                 LEDPattern.solid(Color.fromHSV(randomHue, 200, 200));
@@ -181,7 +181,7 @@ public class HistoryFSM extends SubsystemBase {
      */
     public void beforeCommands() {}
 
-    int m_DebugPrintCounter = 0; // limit testing prints counter
+    int m_DebugPrintCounter; // 0; initialize limit testing prints counter
 
     /**
      * Run after commands and triggers

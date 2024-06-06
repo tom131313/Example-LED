@@ -33,7 +33,7 @@ public class RobotContainer {
 
   // runtime options; too rigid - could be made easier to find and change but this is just a
   // "simple" example program
-  private final boolean logCommands = false; // switch command logging on/off; a lot of output for the
+  private static final boolean m_logCommands = false; // switch command logging on/off; a lot of output for the
                                        // command execute methods
 
   // define all the subsystems
@@ -61,8 +61,9 @@ public class RobotContainer {
 
     configureDefaultCommands();
 
-    if (logCommands)
-      configureLogging();
+    if (m_logCommands) {
+      configureLogging();      
+    }
   }
 
   /**
@@ -75,7 +76,7 @@ public class RobotContainer {
 
     new Trigger(m_OperatorController.rightTrigger(0.05)) // triggers if past a small threshold
         .onTrue(m_AchieveHueGoal.m_HueGoal.setHueGoal( // then it's always on
-            () -> m_OperatorController.getRightTriggerAxis() * 180. // supplying the current value
+            () -> m_OperatorController.getRightTriggerAxis() * 180.0 // supplying the current value
         // scale joystick's 0 to 1 to computer color wheel hue 0 to 180
         ));
   }
@@ -89,7 +90,7 @@ public class RobotContainer {
 
     // produce a color based on the timer current seconds of the minute
     return () -> LEDPattern.solid(Color.fromHSV(
-        (int) (Timer.getFPGATimestamp() % 60./* seconds of the minute */)
+        (int) (Timer.getFPGATimestamp() % 60.0/* seconds of the minute */)
             * 3/* scale seconds to 180 hues per color wheel */,
         200, 200));
   }
@@ -102,13 +103,13 @@ public class RobotContainer {
    */
   private void configureDefaultCommands() {
 
-    final LEDPattern TopDefaultSignal = LEDPattern.solid(new Color(0., 0., 1.));
+    final LEDPattern TopDefaultSignal = LEDPattern.solid(new Color(0.0, 0.0, 1.0));
     final LEDPattern MainDefaultSignal =
-        LEDPattern.solid(new Color(0., 1., 1.));
+        LEDPattern.solid(new Color(0.0, 1.0, 1.0));
     final LEDPattern disabled =
-        LEDPattern.solid(Color.kRed).breathe(Seconds.of(2));
+        LEDPattern.solid(Color.kRed).breathe(Seconds.of(2.0));
     final LEDPattern enabled =
-        LEDPattern.solid(Color.kGreen).breathe(Seconds.of(2));
+        LEDPattern.solid(Color.kGreen).breathe(Seconds.of(2.0));
     final LEDPatternSupplier EnableDisableDefaultSignal =
         () -> DriverStation.isDisabled() ? disabled : enabled;
 
@@ -136,18 +137,20 @@ public class RobotContainer {
 
     LEDPattern autoTopSignal = LEDPattern.solid(new Color(0.1, 0.2, 0.2)).blend(
         LEDPattern.solid(new Color(0.7, 0.2, 0.2)).blink(Seconds.of(0.1)));
-    LEDPattern autoMainSignal = LEDPattern.solid(new Color(0.3, 1., 0.3));
+    LEDPattern autoMainSignal = LEDPattern.solid(new Color(0.3, 1.0, 0.3));
     // statements before the return are run early at initialization time
     return
     // statements returned are run later when the command is scheduled
-    parallel // interrupting either of the two parallel commands with an external command interrupts
+    parallel( // interrupting either of the two parallel commands with an external command interrupts
              // the group
-    (m_RobotSignals.m_Top.setSignal(autoTopSignal).withTimeout(6.) // example this ends but the group
+      m_RobotSignals.m_Top.setSignal(autoTopSignal).withTimeout(6.0) // example this ends but the group
         // continues and the default command is not activated here with or without
         // the ".andThen" command
         .andThen(m_RobotSignals.m_Top.setSignal(autoTopSignal)),
 
-        m_RobotSignals.m_Main.setSignal(autoMainSignal)).withName("AutoSignal");
+      m_RobotSignals.m_Main.setSignal(autoMainSignal)
+    )
+      .withName("AutoSignal");
   }
 
   /**

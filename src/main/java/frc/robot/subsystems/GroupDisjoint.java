@@ -107,6 +107,8 @@ public class GroupDisjoint extends SubsystemBase {
 
   /**
    * Example of how to allow one (or none) default command to be set.
+   * 
+   * @param def default command
    */
   @Override
   public void setDefaultCommand(Command def) {
@@ -120,11 +122,14 @@ public class GroupDisjoint extends SubsystemBase {
     }
   }
 
+  /**
+   * Set the default default command
+   */
   public void setDefaultCommand() {
-    setDefaultCommand(defaultCommand);
+    setDefaultCommand(m_defaultCommand);
   }
 
-  private final Command defaultCommand = run(() -> {
+  private final Command m_defaultCommand = run(() -> {
     m_Output = m_ResourceID + "d";
     m_OutputFresh = true;
   });
@@ -134,7 +139,7 @@ public class GroupDisjoint extends SubsystemBase {
    * 
    * @param testNumber output this number and the resource (subsystem) ID
    * @param testDuration seconds to run execute() to produce output
-   * @return
+   * @return command that puts out a "testNumber" for "testDuration" seconds
    */
   public Command testDuration(int testNumber, double testDuration) {
 
