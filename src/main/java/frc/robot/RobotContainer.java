@@ -43,9 +43,10 @@ public class RobotContainer {
   private final TargetVision m_targetVision;
   private final HistoryFSM m_historyFSM;
   private final AchieveHueGoal m_achieveHueGoal;
-  private final RobotSignals m_robotSignals; // container and creator of all the LEDView subsystems
-  private final GroupDisjointTest m_groupDisjointTest =
-      GroupDisjointTest.getInstance(); // container and creator of all the group/disjoint tests
+  // container and creator of all the LEDView subsystems
+  private final RobotSignals m_robotSignals;
+  // container and creator of all the group/disjoint tests
+  private final GroupDisjointTest m_groupDisjointTest = new GroupDisjointTest();
 
   // subsystems
 
@@ -164,7 +165,18 @@ public class RobotContainer {
         .withName("AutoSignal");
   }
 
-  /** Configure Command logging */
+  /**
+   * Get disjointed sequence test
+   * 
+   * @return Command to be scheduled to run disjointed sequence test
+   */
+  public Command getDisjointedSequenceTest() {
+    return m_groupDisjointTest.m_disjointedSequenceTest;
+  }
+
+  /**
+   * Configure Command logging
+   */
   private void configureLogging() {
     CommandScheduler.getInstance()
         .onCommandInitialize(
