@@ -10,7 +10,6 @@ package frc.robot;
  * scheduler loop; - everything until it got too big and some logical splits to other classes had to
  * be made.
  */
-
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 
@@ -30,200 +29,221 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class RobotContainer {
-
   // runtime options; too rigid - could be made easier to find and change but this is just a
   // "simple" example program
-  private static final boolean m_logCommands = false; // switch command logging on/off; a lot of output for the
-                                       // command execute methods
+
+  // switch command logging on/off; a lot of output for the command execute methods
+  private final boolean m_logCommands = false;
 
   // define all the subsystems
-  private static final int m_OperatorControllerPort = 0;
-  private final CommandXboxController m_OperatorController =
-      new CommandXboxController(m_OperatorControllerPort);
-  private final Intake m_Intake;
-  private final TargetVision m_TargetVision;
-  private final HistoryFSM m_HistoryFSM;
-  private final AchieveHueGoal m_AchieveHueGoal;
-  private final RobotSignals m_RobotSignals; // container and creator of all the LEDView subsystems
-  private final GroupDisjointTest m_GroupDisjointTest =
+  private static final int m_operatorControllerPort = 0;
+  private final CommandXboxController m_operatorController =
+      new CommandXboxController(m_operatorControllerPort);
+  private final Intake m_intake;
+  private final TargetVision m_targetVision;
+  private final HistoryFSM m_historyFSM;
+  private final AchieveHueGoal m_achieveHueGoal;
+  private final RobotSignals m_robotSignals; // container and creator of all the LEDView subsystems
+  private final GroupDisjointTest m_groupDisjointTest =
       GroupDisjointTest.getInstance(); // container and creator of all the group/disjoint tests
-                                       // subsystems
+
+  // subsystems
 
   public RobotContainer() {
-
-    m_RobotSignals = new RobotSignals(1);
-    m_Intake = new Intake(m_RobotSignals.m_Main, m_OperatorController);
-    m_TargetVision = new TargetVision(m_RobotSignals.m_Top, m_OperatorController);
-    m_HistoryFSM = new HistoryFSM(m_RobotSignals.m_HistoryDemo, m_OperatorController);
-    m_AchieveHueGoal = new AchieveHueGoal(m_RobotSignals.m_AchieveHueGoal);
+    m_robotSignals = new RobotSignals(1);
+    m_intake = new Intake(m_robotSignals.m_main, m_operatorController);
+    m_targetVision = new TargetVision(m_robotSignals.m_top, m_operatorController);
+    m_historyFSM = new HistoryFSM(m_robotSignals.m_historyDemo, m_operatorController);
+    m_achieveHueGoal = new AchieveHueGoal(m_robotSignals.m_achieveHueGoal);
 
     configureBindings();
 
     configureDefaultCommands();
 
     if (m_logCommands) {
-      configureLogging();      
+      configureLogging();
     }
   }
 
-  /**
-   * configure driver and operator controllers' buttons (if they haven't been defined)
-   */
+  /** configure driver and operator controllers' buttons (if they haven't been defined) */
   private void configureBindings() {
+    m_operatorController
+        .x()
+        .debounce(0.03, DebounceType.kBoth)
+        .onTrue(m_robotSignals.m_top.setSignal(colorWheel()));
 
-    m_OperatorController.x().debounce(0.03, DebounceType.kBoth)
-        .onTrue(m_RobotSignals.m_Top.setSignal(colorWheel()));
-
-    new Trigger(m_OperatorController.rightTrigger(0.05)) // triggers if past a small threshold
-        .onTrue(m_AchieveHueGoal.m_HueGoal.setHueGoal( // then it's always on
-            () -> m_OperatorController.getRightTriggerAxis() * 180.0 // supplying the current value
-        // scale joystick's 0 to 1 to computer color wheel hue 0 to 180
-        ));
+    new Trigger(m_operatorController.rightTrigger(0.05)) // triggers if past a small threshold
+        .onTrue(
+            m_achieveHueGoal.m_hueGoal.setHueGoal( // then it's always on
+                () ->
+                    m_operatorController.getRightTriggerAxis()
+                        * 180.0 // supplying the current value
+                // scale joystick's 0 to 1 to computer color wheel hue 0 to 180
+                ));
   }
 
   /**
    * "color wheel" supplier runs when commanded
-   * 
+   *
    * @return
    */
   private RobotSignals.LEDPatternSupplier colorWheel() {
-
     // produce a color based on the timer current seconds of the minute
-    return () -> LEDPattern.solid(Color.fromHSV(
-        (int) (Timer.getFPGATimestamp() % 60.0/* seconds of the minute */)
-            * 3/* scale seconds to 180 hues per color wheel */,
-        200, 200));
+    return () ->
+        LEDPattern.solid(
+            Color.fromHSV(
+                (int) (Timer.getFPGATimestamp() % 60.0 /* seconds of the minute */)
+                    * 3 /* scale seconds to 180 hues per color wheel */,
+                200,
+                200));
   }
 
   /**
    * Configure some of the Default Commands
-   * 
-   * WARNING - heed the advice in the Robot.java comments about default commands
-   * 
+   *
+   * <p>WARNING - heed the advice in the Robot.java comments about default commands
    */
   private void configureDefaultCommands() {
-
-    final LEDPattern TopDefaultSignal = LEDPattern.solid(new Color(0.0, 0.0, 1.0));
-    final LEDPattern MainDefaultSignal =
-        LEDPattern.solid(new Color(0.0, 1.0, 1.0));
-    final LEDPattern disabled =
-        LEDPattern.solid(Color.kRed).breathe(Seconds.of(2.0));
-    final LEDPattern enabled =
-        LEDPattern.solid(Color.kGreen).breathe(Seconds.of(2.0));
-    final LEDPatternSupplier EnableDisableDefaultSignal =
+    final LEDPattern topDefaultSignal = LEDPattern.solid(new Color(0.0, 0.0, 1.0));
+    final LEDPattern mainDefaultSignal = LEDPattern.solid(new Color(0.0, 1.0, 1.0));
+    final LEDPattern disabled = LEDPattern.solid(Color.kRed).breathe(Seconds.of(2.0));
+    final LEDPattern enabled = LEDPattern.solid(Color.kGreen).breathe(Seconds.of(2.0));
+    final LEDPatternSupplier enableDisableDefaultSignal =
         () -> DriverStation.isDisabled() ? disabled : enabled;
 
-    final Command TopDefault = m_RobotSignals.m_Top.setSignal(TopDefaultSignal)
-        .ignoringDisable(true).withName("TopDefault");
-    final Command MainDefault = m_RobotSignals.m_Main.setSignal(MainDefaultSignal)
-        .ignoringDisable(true).withName("MainDefault");
-    final Command EnableDisableDefault =
-        m_RobotSignals.m_EnableDisable.setSignal(EnableDisableDefaultSignal)
-            .ignoringDisable(true).withName("EnableDisableDefault");
+    final Command topDefault =
+        m_robotSignals
+            .m_top
+            .setSignal(topDefaultSignal)
+            .ignoringDisable(true)
+            .withName("TopDefault");
+    final Command mainDefault =
+        m_robotSignals
+            .m_main
+            .setSignal(mainDefaultSignal)
+            .ignoringDisable(true)
+            .withName("MainDefault");
+    final Command enableDisableDefault =
+        m_robotSignals
+            .m_enableDisable
+            .setSignal(enableDisableDefaultSignal)
+            .ignoringDisable(true)
+            .withName("EnableDisableDefault");
 
-    m_RobotSignals.m_Top.setDefaultCommand(TopDefault);
-    m_RobotSignals.m_Main.setDefaultCommand(MainDefault);
-    m_RobotSignals.m_EnableDisable.setDefaultCommand(EnableDisableDefault);
+    m_robotSignals.m_top.setDefaultCommand(topDefault);
+    m_robotSignals.m_main.setDefaultCommand(mainDefault);
+    m_robotSignals.m_enableDisable.setDefaultCommand(enableDisableDefault);
   }
 
   /**
    * Create a command to run in Autonomous
-   * 
-   * Example of setting signals by contrived example of composed commands
-   * 
+   *
+   * <p>Example of setting signals by contrived example of composed commands
+   *
    * @return
    */
   public Command getAutonomousCommand() {
-
-    LEDPattern autoTopSignal = LEDPattern.solid(new Color(0.1, 0.2, 0.2)).blend(
-        LEDPattern.solid(new Color(0.7, 0.2, 0.2)).blink(Seconds.of(0.1)));
+    LEDPattern autoTopSignal =
+        LEDPattern.solid(new Color(0.1, 0.2, 0.2))
+            .blend(LEDPattern.solid(new Color(0.7, 0.2, 0.2)).blink(Seconds.of(0.1)));
     LEDPattern autoMainSignal = LEDPattern.solid(new Color(0.3, 1.0, 0.3));
     // statements before the return are run early at initialization time
     return
     // statements returned are run later when the command is scheduled
-    parallel( // interrupting either of the two parallel commands with an external command interrupts
-             // the group
-      m_RobotSignals.m_Top.setSignal(autoTopSignal).withTimeout(6.0) // example this ends but the group
-        // continues and the default command is not activated here with or without
-        // the ".andThen" command
-        .andThen(m_RobotSignals.m_Top.setSignal(autoTopSignal)),
-
-      m_RobotSignals.m_Main.setSignal(autoMainSignal)
-    )
-      .withName("AutoSignal");
+    parallel(
+            // interrupting either of the two parallel commands with an external command interrupts
+            // the group
+            m_robotSignals
+                .m_top
+                .setSignal(autoTopSignal)
+                .withTimeout(6.0) // example this ends but the group continues and the default
+                // command is not activated here with or without the
+                // ".andThen" command
+                .andThen(m_robotSignals.m_top.setSignal(autoTopSignal)),
+            m_robotSignals.m_main.setSignal(autoMainSignal))
+        .withName("AutoSignal");
   }
 
-  /**
-   * Configure Command logging
-   */
+  /** Configure Command logging */
   private void configureLogging() {
+    CommandScheduler.getInstance()
+        .onCommandInitialize(
+            command -> {
+              if (!"LedSet".equals(command.getName())) {
+                System.out.println(
+                    /* command.getClass() + " " + */ command.getName()
+                        + " initialized "
+                        + command.getRequirements());
+              }
+            });
 
-    CommandScheduler.getInstance().onCommandInitialize(command -> {
-      if (!"LedSet".equals(command.getName())) {
-        System.out.println(/* command.getClass() + " " + */ command.getName()
-            + " initialized " + command.getRequirements());
-      }
-    });
+    CommandScheduler.getInstance()
+        .onCommandInterrupt(
+            command -> {
+              if (!"LedSet".equals(command.getName())) {
+                System.out.println(
+                    /* command.getClass() + " " + */ command.getName()
+                        + " interrupted "
+                        + command.getRequirements());
+              }
+            });
 
-    CommandScheduler.getInstance().onCommandInterrupt(command -> {
-      if (!"LedSet".equals(command.getName())) {
-        System.out.println(/* command.getClass() + " " + */ command.getName()
-            + " interrupted " + command.getRequirements());
-      }
-    });
+    CommandScheduler.getInstance()
+        .onCommandFinish(
+            command -> {
+              if (!"LedSet".equals(command.getName())) {
+                System.out.println(
+                    /* command.getClass() + " " + */ command.getName()
+                        + " finished "
+                        + command.getRequirements());
+              }
+            });
 
-    CommandScheduler.getInstance().onCommandFinish(command -> {
-      if (!"LedSet".equals(command.getName())) {
-        System.out.println(/* command.getClass() + " " + */ command.getName()
-            + " finished " + command.getRequirements());
-      }
-    });
-
-    CommandScheduler.getInstance().onCommandExecute( // this can generate a lot of events
-        command -> {
-          if (!"LedSet".equals(command.getName())) {
-            System.out
-                .println(/* command.getClass() + " " + */ command.getName()
-                    + " executed " + command.getRequirements());
-          }
-        });
+    CommandScheduler.getInstance()
+        .onCommandExecute( // this can generate a lot of events
+            command -> {
+              if (!"LedSet".equals(command.getName())) {
+                System.out.println(
+                    /* command.getClass() + " " + */ command.getName()
+                        + " executed "
+                        + command.getRequirements());
+              }
+            });
   }
 
   /**
    * Run before commands and triggers
-   * 
+   *
    * <p>Run periodically before commands are run - read sensors, etc. Include all classes that have
    * periodic inputs or other need to run periodically.
    *
-   * <p>There are clever ways to register classes so they are automatically included in a list but this
-   * example is simplistic - remember to type them in.
+   * <p>There are clever ways to register classes so they are automatically included in a list but
+   * this example is simplistic - remember to type them in.
    */
   public void beforeCommands() {
-
-    m_Intake.beforeCommands();
-    m_TargetVision.beforeCommands();
-    m_RobotSignals.beforeCommands();
-    m_HistoryFSM.beforeCommands();
-    m_AchieveHueGoal.beforeCommands();
-    m_GroupDisjointTest.beforeCommands();
+    m_intake.beforeCommands();
+    m_targetVision.beforeCommands();
+    m_robotSignals.beforeCommands();
+    m_historyFSM.beforeCommands();
+    m_achieveHueGoal.beforeCommands();
+    m_groupDisjointTest.beforeCommands();
   }
 
   /**
    * Run after commands and triggers
-   * 
+   *
    * <p>Run periodically after commands are run - write logs, dashboards, indicators Include all
    * classes that have periodic outputs
-   * 
-   * <p>There are clever ways to register classes so they are automatically included in a list but this
-   * example isn't it; simplistic - remember to type them in.
+   *
+   * <p>There are clever ways to register classes so they are automatically included in a list but
+   * this example isn't it; simplistic - remember to type them in.
    */
   public void afterCommands() {
-
-    m_Intake.afterCommands();
-    m_TargetVision.afterCommands();
-    m_RobotSignals.afterCommands();
-    m_HistoryFSM.afterCommands();
-    m_AchieveHueGoal.afterCommands();
-    m_GroupDisjointTest.afterCommands();
+    m_intake.afterCommands();
+    m_targetVision.afterCommands();
+    m_robotSignals.afterCommands();
+    m_historyFSM.afterCommands();
+    m_achieveHueGoal.afterCommands();
+    m_groupDisjointTest.afterCommands();
   }
 }

@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+
 import java.util.Objects;
 
 /** Represents colors with 8 bits of precision. */
