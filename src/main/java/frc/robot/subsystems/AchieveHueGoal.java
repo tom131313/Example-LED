@@ -47,7 +47,7 @@ public class AchieveHueGoal {
   private final double m_maximumHue = 180.0;
   // initialize setpoint (goal) such that the controller doesn't start until setpoint is set
   private double m_hueSetpoint = Double.NaN;
-  private double m_currentStateHue = 0.0;
+  private double m_currentStateHue = 0.0; // also considered the initial and previous state
 
   private final LEDView m_robotSignals; // where the output is displayed
 

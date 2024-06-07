@@ -24,7 +24,6 @@ public class TargetVision extends SubsystemBase {
   private final CommandXboxController m_OperatorController;
 
   private final Trigger m_TargetAcquired = new Trigger(this::canSeeTarget);
-          
 
   /**
    * @param robotSignals Signal Subsystem
