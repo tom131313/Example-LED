@@ -96,7 +96,7 @@ public class AchieveHueGoal {
               m_maximumHue);
       LEDPattern persistentPatternDemo =
           LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200)); // display state;
-      m_robotSignals.setSignal(persistentPatternDemo).schedule(); // access to the LEDS is only by
+      m_robotSignals.setSignal(persistentPatternDemo).schedule(); // access to the LEDs is only by
                                                     // command in this example so do it that way. 
     }
  }
