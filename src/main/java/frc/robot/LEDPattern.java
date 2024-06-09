@@ -4,13 +4,12 @@
 
 package frc.robot;
 
-// import edu.wpi.first.wpilibj.util.Color;
-
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Microsecond;
 import static edu.wpi.first.units.Units.Microseconds;
 import static edu.wpi.first.units.Units.Value;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Dimensionless;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
@@ -20,9 +19,11 @@ import edu.wpi.first.units.collections.LongToObjectHashMap;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 
+// import edu.wpi.first.wpilibj.util.Color;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
 /**
  * An LED pattern controls lights on an LED strip to command patterns of color that may change over
@@ -41,6 +42,7 @@ import java.util.function.BooleanSupplier;
  *
  *     public LEDs() {
  *       m_led.setLength(120);
+ *       m_led.start();
  *     }
  *
  *    {@literal @}Override
@@ -58,7 +60,7 @@ import java.util.function.BooleanSupplier;
  * sections of the same LED strip, since the roboRIO can only drive a single LED strip). In this
  * example, we split the single buffer into two views - one for the section of the LED strip on the
  * left side of a robot, and another view for the section of LEDs on the right side. The same
- * pattern is able to be applied to both sides
+ * pattern is able to be applied to both sides.
  *
  * <pre><code>
  *   public class LEDs extends SubsystemBase {
@@ -68,7 +70,8 @@ import java.util.function.BooleanSupplier;
  *     private final AddressableLEDBufferView m_rightData = m_ledData.createView(30, 59).reversed();
  *
  *     public LEDs() {
- *       m_led.setLength(120);
+ *       m_led.setLength(60);
+ *       m_led.start();
  *     }
  *
  *    {@literal @}Override
@@ -99,7 +102,8 @@ public interface LEDPattern {
    * <p>This method is intentionally designed to use separate objects for reading and writing data.
    * By splitting them up, we can easily modify the behavior of some base pattern to make it {@link
    * #scrollAtRelativeSpeed(Measure) scroll}, {@link #blink(Measure, Measure) blink}, or {@link
-   * #breathe(Measure) breathe}.
+   * #breathe(Measure) breathe} by intercepting the data writes to transform their behavior to
+   * whatever we like.
    *
    * @param reader data reader for accessing buffer length and current colors
    * @param writer data writer for setting new LED colors on the buffer
@@ -128,9 +132,17 @@ public interface LEDPattern {
   }
 
   /**
-   * Creates a pattern that plays this one in reverse. Has no effect on non-animated patterns.
+   * Creates a pattern that displays this one in reverse. Scrolling patterns will scroll in the
+   * opposite direction (but at the same speed). It will treat the end of an LED strip as the start,
+   * and the start of the strip as the end. This can be useful for making ping-pong patterns that
+   * travel from one end of an LED strip to the other, then reverse direction and move back to the
+   * start. This can also be useful when working with LED strips connected in a serpentine pattern
+   * (where the start of one strip is connected to the end of the previous one); however, consider
+   * using a {@link AddressableLEDBufferView#reversed() reversed view} of the overall buffer for
+   * that segment rather than reversing patterns.
    *
    * @return the reverse pattern
+   * @see AddressableLEDBufferView#reversed()
    */
   default LEDPattern reversed() {
     return (reader, writer) -> {
@@ -164,6 +176,14 @@ public interface LEDPattern {
    * strip; scrolling across a segment that is 10 LEDs long will travel twice as fast as on a
    * segment that's only 5 LEDs long (assuming equal LED density on both segments).
    *
+   * <p>For example, scrolling a pattern by one quarter of any LED strip's length per second,
+   * regardless of the total number of LEDs on that strip:
+   *
+   * <pre>
+   *   LEDPattern rainbow = LEDPattern.rainbow(255, 255);
+   *   LEDPattern scrollingRainbow = rainbow.scrollAtRelativeSpeed(Percent.per(Second).of(25));
+   * </pre>
+   *
    * @param velocity how fast the pattern should move, in terms of how long it takes to do a full
    *     scroll along the length of LEDs and return back to the starting position
    * @return the scrolling pattern
@@ -193,6 +213,22 @@ public interface LEDPattern {
   /**
    * Creates a pattern that plays this one scrolling up an LED strip. A negative velocity makes the
    * pattern play in reverse.
+   *
+   * <p>For example, scrolling a pattern at 4 inches per second along an LED strip with 60 LEDs per
+   * meter:
+   *
+   * <pre>
+   *   // LEDs per meter, a known value taken from the spec sheet of our particular LED strip
+   *   Measure&lt;Distance&gt; LED_SPACING = Meters.of(1.0 / 60);
+   *
+   *   LEDPattern rainbow = LEDPattern.rainbow();
+   *   LEDPattern scrollingRainbow =
+   *     rainbow.scrollAtAbsoluteSpeed(InchesPerSecond.of(4), LED_SPACING);
+   * </pre>
+   *
+   * <p>Note that this pattern will scroll <i>faster</i> if applied to a less dense LED strip (such
+   * as 30 LEDs per meter), or <i>slower</i> if applied to a denser LED strip (such as 120 or 144
+   * LEDs per meter).
    *
    * @param velocity how fast the pattern should move along a physical LED strip
    * @param ledSpacing the distance between adjacent LEDs on the physical LED strip
@@ -295,9 +331,9 @@ public interface LEDPattern {
 
             // Apply the cosine function and shift its output from [-1, 1] to [0, 1]
             // Use cosine so the period starts at 100% brightness
-            double dim = 1 - (Math.cos(phase) + 1) / 2.0;
+            double dim = (Math.cos(phase) + 1) / 2.0;
 
-            int output = Color.lerpRGB(r, g, b, 0, 0, 0, dim);
+            int output = Color.lerpRGB(0, 0, 0, r, g, b, dim);
 
             writer.setRGB(
                 i,
@@ -362,6 +398,73 @@ public interface LEDPattern {
     };
   }
 
+  /**
+   * Similar to {@link #blend(LEDPattern)}, but performs a bitwise mask on each color channel rather
+   * than averaging the colors for each LED. This can be helpful for displaying only a portion of
+   * the base pattern by applying a mask that sets the desired area to white, and all other areas to
+   * black. However, it can also be used to display only certain color channels or hues; for
+   * example, masking with {@code LEDPattern.color(Color.kRed)} will turn off the green and blue
+   * channels on the output pattern, leaving only the red LEDs to be illuminated.
+   *
+   * @param mask the mask to apply
+   * @return the masked pattern
+   */
+  default LEDPattern mask(LEDPattern mask) {
+    return (reader, writer) -> {
+      // Apply the current pattern down as normal...
+      applyTo(reader, writer);
+
+      mask.applyTo(
+          reader,
+          (i, r, g, b) -> {
+            // ... then perform a bitwise AND operation on each channel to apply the mask
+            writer.setRGB(i, r & reader.getRed(i), g & reader.getGreen(i), b & reader.getBlue(i));
+          });
+    };
+  }
+
+  /**
+   * Creates a pattern that plays this one, but at a different brightness. Brightness multipliers
+   * are applied per-channel in the RGB space; no HSL or HSV conversions are applied. Multipliers
+   * are also uncapped, which may result in the original colors washing out and appearing less
+   * saturated or even just a bright white.
+   *
+   * <p>This method is predominantly intended for dimming LEDs to avoid painfully bright or
+   * distracting patterns from playing (apologies to the 2024 NE Greater Boston field staff).
+   *
+   * <p>For example, dimming can be done simply by adding a call to `atBrightness` at the end of a
+   * pattern:
+   *
+   * <pre>
+   *   // Solid red, but at 50% brightness
+   *   LEDPattern.solid(Color.kRed).atBrightness(Percent.of(50));
+   *
+   *   // Solid white, but at only 10% (i.e. ~0.5V)
+   *   LEDPattern.solid(Color.kWhite).atBrightness(Percent.of(10));
+   * </pre>
+   *
+   * @param relativeBrightness the multiplier to apply to all channels to modify brightness
+   * @return the input pattern, displayed at
+   */
+  default LEDPattern atBrightness(Measure<Dimensionless> relativeBrightness) {
+    double multiplier = relativeBrightness.in(Value);
+
+    return (reader, writer) -> {
+      applyTo(
+          reader,
+          (i, r, g, b) -> {
+            // Clamp RGB values to keep them in the range [0, 255].
+            // Otherwise, the casts to byte would result in values like 256 wrapping to 0
+
+            writer.setRGB(
+                i,
+                (int) MathUtil.clamp(r * multiplier, 0, 255),
+                (int) MathUtil.clamp(g * multiplier, 0, 255),
+                (int) MathUtil.clamp(b * multiplier, 0, 255));
+          });
+    };
+  }
+
   /** A pattern that turns off all LEDs. */
   LEDPattern kOff = solid(Color.kBlack);
 
@@ -376,6 +479,43 @@ public interface LEDPattern {
       int bufLen = reader.getLength();
       for (int led = 0; led < bufLen; led++) {
         writer.setLED(led, color);
+      }
+    };
+  }
+
+  /**
+   * Creates a pattern that works as a mask layer for {@link #mask(LEDPattern)} that illuminates
+   * only the portion of the LED strip corresponding with some progress. The mask pattern will start
+   * from the base and set LEDs to white at a proportion equal to the progress returned by the
+   * function. Some usages for this could be for displaying progress of a flywheel to its target
+   * velocity, progress of a complex autonomous sequence, or the height of an elevator.
+   *
+   * <p>For example, creating a mask for displaying a red-to-blue gradient, starting from the red
+   * end, based on where an elevator is in its range of travel.
+   *
+   * <pre>
+   *   LEDPattern basePattern = gradient(Color.kRed, Color.kBlue);
+   *   LEDPattern progressPattern =
+   *     basePattern.mask(progressMaskLayer(() -> elevator.getHeight() / elevator.maxHeight());
+   * </pre>
+   *
+   * @param progressSupplier the function to call to determine the progress. This should return
+   *     values in the range [0, 1]; any values outside that range will be clamped.
+   * @return the mask pattern
+   */
+  static LEDPattern progressMaskLayer(DoubleSupplier progressSupplier) {
+    return (reader, writer) -> {
+      double progress = MathUtil.clamp(progressSupplier.getAsDouble(), 0, 1);
+
+      int bufLen = reader.getLength();
+      int max = (int) (bufLen * progress);
+
+      for (int led = 0; led < max; led++) {
+        writer.setLED(led, Color.kWhite);
+      }
+
+      for (int led = max; led < bufLen; led++) {
+        writer.setLED(led, Color.kBlack);
       }
     };
   }
