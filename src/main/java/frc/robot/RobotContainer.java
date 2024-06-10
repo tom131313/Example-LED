@@ -155,7 +155,7 @@ public class RobotContainer {
   /**
    * Create a command to signal in Autonomous
    *
-   * <p>Example of setting teo signals by contrived example of composed commands
+   * <p>Example of setting two signals by contrived example of composed commands
    *
    * @return
    */
