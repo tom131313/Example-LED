@@ -11,7 +11,7 @@
  *
  * 1. LED set 1 usage Top LEDView subsystem default blue.
  *  Autonomous mode command dark green.
- *  Non-autonomous display colors lowly around the color wheel initiated by pressing "X" button.
+ *  Non-autonomous display colors slowly around the color wheel initiated by pressing "X" button.
  *
  * 2. LED set 2 usage Main LEDView subsystem default cyan.
  *  Game Piece Intake Acquired subsystem signal intake game piece acquired magenta fast blink
