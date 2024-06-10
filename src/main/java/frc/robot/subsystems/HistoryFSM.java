@@ -87,7 +87,7 @@ public class HistoryFSM extends SubsystemBase {
         .or(operatorController.y().debounce(m_yButtonDebounceTime.in(Seconds)))
         .onTrue(
             runOnce(this::getHSV) // new color
-                .andThen(runOnce(this::setNextTime)) // next time for new color
+            .andThen(runOnce(this::setNextTime)) // next time for new color
             );
   }
 
