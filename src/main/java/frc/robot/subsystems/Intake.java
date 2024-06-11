@@ -10,6 +10,8 @@ package frc.robot.subsystems;
  */
 
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.wpilibj2.command.Commands.parallel;
+import static edu.wpi.first.wpilibj2.command.Commands.none;
 
 import frc.robot.Color;
 import frc.robot.LEDPattern;
@@ -43,10 +45,14 @@ public class Intake extends SubsystemBase {
    */
   private Command gamePieceIsAcquired() {
     LEDPattern gamePieceAcquiredSignal = LEDPattern.solid(Color.kMagenta).blink(Seconds.of(0.2));
-    return m_robotSignals
-        .setSignal(gamePieceAcquiredSignal) // this command locks the robotSignals.Main subsystem
-        .ignoringDisable(true)
-        .withName("MainGamePieceAcquiredSignal");
+    return
+      parallel(
+          m_robotSignals.setSignal(gamePieceAcquiredSignal) // this command locks the
+          .ignoringDisable(true)                            //  robotSignals subsystem
+          .withName("MainGamePieceAcquiredSignal"),
+
+          none() // this command locks the Intake subsystem for the group since there is no asProxy
+      );
   }
 
   /**
