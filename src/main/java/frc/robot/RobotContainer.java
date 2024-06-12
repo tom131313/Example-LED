@@ -22,8 +22,6 @@ import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.RobotSignals.LEDPatternSupplier;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -31,42 +29,38 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public class RobotContainer {
-  // runtime options; too rigid - could be made easier to find and change but this is just a
-  // "simple" example program
-
-  // switch command logging on/off; a lot of output for the command execute methods
-  private static final boolean m_logCommands = false;
-
   // define all the subsystems
-  private static final int m_operatorControllerPort = 0;
-  private final CommandXboxController m_operatorController =
-      new CommandXboxController(m_operatorControllerPort);
+  private final CommandXboxController m_operatorController;
   private final Intake m_intake;
   private final HistoryFSM m_historyFSM;
   private final AchieveHueGoal m_achieveHueGoal;
   // container and creator of all the LEDView subsystems
   private final RobotSignals m_robotSignals;
   // container and creator of all the group/disjoint tests
-  private final GroupDisjointTest m_groupDisjointTest = new GroupDisjointTest();
+  private final GroupDisjointTest m_groupDisjointTest;
 
-  private static final Measure<Time> m_xButtonDebounceTime = Milliseconds.of(30.0);
-  private static final int m_addressableLedPwmPort = 1;
-  
   /**
    * Set the final values
    */
   public RobotContainer() {
+    final int operatorControllerPort = 0;
+    m_operatorController = new CommandXboxController(operatorControllerPort);
+      
     // subsystems
-    m_robotSignals = new RobotSignals(m_addressableLedPwmPort);
-    m_intake = new Intake(m_robotSignals.m_main, m_operatorController);
-    m_historyFSM = new HistoryFSM(m_robotSignals.m_historyDemo, m_operatorController);
+    m_robotSignals = new RobotSignals();
+    m_intake = new Intake(m_robotSignals.m_main);
+    m_historyFSM = new HistoryFSM(m_robotSignals.m_historyDemo);
     m_achieveHueGoal = new AchieveHueGoal(m_robotSignals.m_achieveHueGoal);
+
+    m_groupDisjointTest = new GroupDisjointTest();
 
     configureBindings();
 
     configureDefaultCommands();
 
-    if (m_logCommands) {
+    // switch command logging on/off; a lot of output for the command execute methods
+    final boolean logCommands = false;
+    if (logCommands) {
       configureLogging();
     }
   }
@@ -75,22 +69,37 @@ public class RobotContainer {
    * configure driver and operator controllers' buttons
    */
   private void configureBindings() {
+
+    /**
+     * Use operator controller for a fake indicator game piece is acquired
+     */
+    m_operatorController.b().whileTrue(m_intake.gamePieceIsAcquired());
+
+    /**
+     * History FSM Control
+     * Trigger if operator pressed "Y" button or it's time for a new color
+     */
+    var yButtonDebounceTime = Milliseconds.of(40.0);
+    m_operatorController.y().debounce(yButtonDebounceTime.in(Seconds)).or(m_historyFSM::timesUp)
+        .onTrue(m_historyFSM.newColor());
+
     /**
      * Start a color wheel display
      */
+    var xButtonDebounceTime = Milliseconds.of(30.0);
     m_operatorController
         .x()
-        .debounce(m_xButtonDebounceTime.in(Seconds), DebounceType.kBoth)
+        .debounce(xButtonDebounceTime.in(Seconds), DebounceType.kBoth)
         .onTrue(m_robotSignals.m_top.setSignal(colorWheel()));
 
-   /**
-    * Goal setting demo
-    *
-    * The PID controller is not running initially until a setpoint is set by moving the Xbox
-    * right trigger axis past the threshold at which time a command runs forever to accept new
-    * setpoints. The reset function on the Xbox A button interrupts the command that accepts new
-    * setpoints and stops the underlying controller process.
-    */
+    /**
+      * Goal setting demo control
+      *
+      * The PID controller is not running initially until a setpoint is set by moving the Xbox
+      * right trigger axis past the threshold at which time a command runs forever to accept new
+      * setpoints. The reset function on the Xbox A button interrupts the command that accepts new
+      * setpoints and stops the underlying controller process.
+      */
     var triggerHueGoalDeadBand = 0.05; //triggers if past a small threshold (scale of 0 to 1)
     m_operatorController.rightTrigger(triggerHueGoalDeadBand)
         .onTrue(
@@ -168,7 +177,7 @@ public class RobotContainer {
    *
    * @return
    */
-  public Command getAutonomousSignal() {
+  public Command setAutonomousSignal() {
     LEDPattern autoTopSignal =
           LEDPattern.solid(new Color(0.1, 0.2, 0.2))
           .blend(LEDPattern.solid(new Color(0.7, 0.2, 0.2)).blink(Seconds.of(0.1)));
