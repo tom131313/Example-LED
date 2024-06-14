@@ -314,7 +314,7 @@ public class GroupDisjointTest extends SubsystemBase {
       print("\nSTART testDisjointRaceParallel"),
       testDisjointRace,
       print("\nEND testDisjointRaceParallel"),
-      /*Commands.*/runOnce( // This is the last command to be run in sequence and it is disjointed the
+      Commands.runOnce( // This is the last command to be run in sequence and it is disjointed the
               // same as all the rest. Any requirements are within the runOnce only and not applied
               // to the entire sequence. As the last command any requirements might be irrelevant
               // and either version of runOnce may be essentially equivalent. The command is
