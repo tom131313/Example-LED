@@ -19,6 +19,7 @@ import frc.robot.subsystems.AchieveHueGoal;
 import frc.robot.subsystems.GroupDisjointTest;
 import frc.robot.subsystems.HistoryFSM;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.MooreLikeFSM;
 import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.RobotSignals.LEDPatternSupplier;
 
@@ -35,6 +36,7 @@ public class RobotContainer {
   private final Intake m_intake;
   private final HistoryFSM m_historyFSM;
   private final AchieveHueGoal m_achieveHueGoal;
+  private final MooreLikeFSM m_mooreLikeFSM;
   // container and creator of all the LEDView subsystems
   private final RobotSignals m_robotSignals;
   // container and creator of all the group/disjoint tests
@@ -52,7 +54,7 @@ public class RobotContainer {
     m_intake = new Intake(m_robotSignals.m_main);
     m_historyFSM = new HistoryFSM(m_robotSignals.m_historyDemo);
     m_achieveHueGoal = new AchieveHueGoal(m_robotSignals.m_achieveHueGoal);
-
+    m_mooreLikeFSM = new MooreLikeFSM(m_robotSignals.m_knightRider);
     m_groupDisjointTest = new GroupDisjointTest();
 
     configureBindings();
@@ -315,6 +317,7 @@ public class RobotContainer {
     m_historyFSM.runBeforeCommands();
     m_achieveHueGoal.runBeforeCommands();
     m_groupDisjointTest.runBeforeCommands();
+    m_mooreLikeFSM.runBeforeCommands();
   }
 
   /**
@@ -329,5 +332,6 @@ public class RobotContainer {
     m_historyFSM.runAfterCommands();
     m_achieveHueGoal.runAfterCommands();
     m_groupDisjointTest.runAfterCommands();
+    m_mooreLikeFSM.runAfterCommands();
   }
 }
