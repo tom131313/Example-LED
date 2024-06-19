@@ -36,60 +36,85 @@ public class MooreLikeFSM extends SubsystemBase {
   static State currentState = initialState;
 
   /**
-   * These commands define the states. They can't be put into the State enum because enums are
-   * static and these commands in general are non-static especially with the automatic "this"
-   * subsystem requirement.
+   * These commands (factories) define the states. They can't be put into the State enum because
+   * enums are static and these commands in general are non-static especially with the automatic
+   * "this" subsystem requirement.
    * 
    * The states have to record their "currentState" for use in the transition since there is no
    * other good way to get automatically the current state.
    */
-  final Command m_scanner1 = runOnce(()->currentState = State.MyState1)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(0, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
 
-  final Command m_scanner2 = runOnce(()->currentState = State.MyState2)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(1, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner1() {
+    return
+      runOnce(()->currentState = State.MyState1)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(0, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
 
-  final Command m_scanner3 = runOnce(()->currentState = State.MyState3)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(2, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner2() {
+    return
+      runOnce(()->currentState = State.MyState2)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(1, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
 
-  final Command m_scanner4 = runOnce(()->currentState = State.MyState4)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(3, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner3() {
+    return
+      runOnce(()->currentState = State.MyState3)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(2, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
 
-  final Command m_scanner5 = runOnce(()->currentState = State.MyState5)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(4, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner4() {
+    return
+      runOnce(()->currentState = State.MyState4)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(3, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
 
-  final Command m_scanner6 = runOnce(()->currentState = State.MyState6)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(5, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner5() {
+    return
+      runOnce(()->currentState = State.MyState5)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(4, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
 
-  final Command m_scanner7 = runOnce(()->currentState = State.MyState7)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(6, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner6() {
+    return
+      runOnce(()->currentState = State.MyState6)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(5, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+    }
 
-  final Command m_scanner8 = runOnce(()->currentState = State.MyState8)      
-    .andThen(()->{
-      LEDPattern currentStateSignal = oneLED(7, Color.kRed, Color.kBlack);
-      m_robotSignals.setSignal(currentStateSignal).schedule();
-    });
+  public final Command scanner7() {
+    return
+      runOnce(()->currentState = State.MyState7)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(6, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
+
+  public final Command scanner8() {
+    return
+      runOnce(()->currentState = State.MyState8)      
+      .andThen(()->{
+        LEDPattern currentStateSignal = oneLED(7, Color.kRed, Color.kBlack);
+        m_robotSignals.setSignal(currentStateSignal).schedule();
+      });
+  }
 
   /**
    * Transitions are defined as a Trigger that checks the current state value AND the clock value
@@ -100,69 +125,76 @@ public class MooreLikeFSM extends SubsystemBase {
    * transition the check for the current state would not be necessary.
    */
 
-  //    current state, trigger, next state
-  private final Trigger t1 = new Trigger(
+  /**
+   * Instantiate and activate Triggers
+   * 
+   * current state, trigger, next state
+   */
+  private final void createTriggers() {
+    new Trigger(
       ()-> currentState == State.MyState1 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 0)
-        .onTrue(m_scanner2);
+        .onTrue(scanner2());
 
-  private final Trigger t2 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState2 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 1)
-        .onTrue(m_scanner3);
+        .onTrue(scanner3());
 
-  private final Trigger t3 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState3 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 2)
-        .onTrue(m_scanner4);
+        .onTrue(scanner4());
 
-  private final Trigger t4 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState4 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 3)
-        .onTrue(m_scanner5);
+        .onTrue(scanner5());
 
-  private final Trigger t5 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState5 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 4)
-        .onTrue(m_scanner6);
+        .onTrue(scanner6());
 
-  private final Trigger t6 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState6 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 5)
-        .onTrue(m_scanner7);
+        .onTrue(scanner7());
 
-  private final Trigger t7 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState7 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 6)
-        .onTrue(m_scanner8);
+        .onTrue(scanner8());
 
-  private final Trigger t8 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState8 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 7)
-        .onTrue(m_scanner7);
+        .onTrue(scanner7());
 
-  private final Trigger t9 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState7 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 8)
-        .onTrue(m_scanner6);
+        .onTrue(scanner6());
 
-  private final Trigger t10 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState6 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 9)
-        .onTrue(m_scanner5);
+        .onTrue(scanner5());
 
-  private final Trigger t11 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState5 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 10)
-        .onTrue(m_scanner4);
+        .onTrue(scanner4());
 
-  private final Trigger t12 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState4 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 11)
-        .onTrue(m_scanner3);
+        .onTrue(scanner3());
 
-  private final Trigger t13 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState3 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 12)
-        .onTrue(m_scanner2);
+        .onTrue(scanner2());
 
-  private final Trigger t14 = new Trigger(
+    new Trigger(
       ()-> currentState == State.MyState2 && (int) (Timer.getFPGATimestamp()*10.0 % 14.0) == 13)
-        .onTrue(m_scanner1);
-  
+        .onTrue(scanner1());
+  }
+
   /**
    * CTOR
    * 
    */
   public MooreLikeFSM(LEDView robotSignals) {
     this.m_robotSignals = robotSignals;
+    createTriggers();
   }
 
   /**
