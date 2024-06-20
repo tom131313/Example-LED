@@ -201,8 +201,11 @@ public class MooreLikeFSM extends SubsystemBase {
   }
 
   /**
-   * Turn on one bright LED in the string view
-   * Turn on its neighbors dimly. If "animated" then it smears or comet-tails.
+   * Turn on one bright LED in the string view.
+   * Turn on its neighbors dimly. It appears smeared.
+   * 
+   * A simple cheat of the real Knight Rider Kitt Scanner which has a slowly
+   * diminishing comet tail.  https://www.youtube.com/watch?v=usui7ECHPNQ
    * 
    * @param index which LED to turn on
    * @param colorForeground color of the on LED
@@ -222,7 +225,7 @@ public class MooreLikeFSM extends SubsystemBase {
         } else if((led == index-1 && index-1 >= 0) || (led == index+1 && index+1 < bufLen)) {
           writer.setRGB(led, (int) (colorForeground.red * slightlyDim), (int) (colorForeground.green * slightlyDim), (int) (colorForeground.blue * slightlyDim));
         } else {
-        writer.setLED(led, colorBackground);              
+          writer.setLED(led, colorBackground);              
         }
       }
     };
