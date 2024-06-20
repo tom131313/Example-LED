@@ -1,12 +1,13 @@
 package frc.robot.subsystems;
 
+import frc.robot.subsystems.RobotSignals.LEDView;
+import frc.robot.Color;
+import frc.robot.LEDPattern;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Color;
-import frc.robot.LEDPattern;
-import frc.robot.subsystems.RobotSignals.LEDView;
 
 /**
  * Demonstration of a Moore-Like FSM example that is similar to composing sequential and parallel
@@ -16,15 +17,15 @@ import frc.robot.subsystems.RobotSignals.LEDView;
  * This FSM example sequentially displays eight red LEDs first to last then back last to first
  *   1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 2 ...
  * 
- * The triggers are 1/10 second clock divided into the 14 bins for 14 triggers needed for this
- * example of the KnightRider Scanner.
+ * The triggers are 1/10 second clock divided into 14 bins for 14 triggers needed for this example
+ * of the Knight Rider Kitt Scanner.
  */
 public class MooreLikeFSM extends SubsystemBase {
 
   private LEDView m_robotSignals; // LED view where the output is displayed
 
   /**
-   * Eight state FSM for the eight lights in the KnightRider Scanner
+   * Eight state FSM for the eight lights in the Knight Rider Kitt Scanner
    */ 
   enum State {MyState1, MyState2, MyState3, MyState4, MyState5, MyState6, MyState7, MyState8};
 
@@ -42,6 +43,8 @@ public class MooreLikeFSM extends SubsystemBase {
    * 
    * The states have to record their "currentState" for use in the transition since there is no
    * other good way to get automatically the current state.
+   * 
+   * @return Command that records its state name and turns on the correct LED
    */
 
   public final Command scanner1() {
@@ -126,7 +129,7 @@ public class MooreLikeFSM extends SubsystemBase {
    */
 
   /**
-   * Instantiate and activate Triggers
+   * Instantiate and activate all Triggers
    * 
    * current state, trigger, next state
    */
@@ -203,7 +206,7 @@ public class MooreLikeFSM extends SubsystemBase {
    * @param index which LED to turn on
    * @param colorForeground color of the on LED
    * @param colorBackground color of the off LEDs
-   * @return
+   * @return Pattern to apply to the LED view
    */
   static final LEDPattern oneLED(int index, Color colorForeground, Color colorBackground) {
     return (reader, writer) -> {
@@ -220,6 +223,9 @@ public class MooreLikeFSM extends SubsystemBase {
 
   /**
    * Default Command could cause havoc with the FSM - it depends; be careful
+   * 
+   * @param def Command will be ignored
+   * @throws IllegalArgumentException immediately to prevent attempt to use
    */
   @Override
   public void setDefaultCommand(Command def) {
