@@ -51,7 +51,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState1)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(0, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(0, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -60,7 +60,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState2)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(1, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(1, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -69,7 +69,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState3)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(2, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(2, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -78,7 +78,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState4)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(3, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(3, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -87,7 +87,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState5)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(4, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(4, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -96,7 +96,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState6)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(5, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(5, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
     }
@@ -105,7 +105,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState7)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(6, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(6, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -114,7 +114,7 @@ public class MooreLikeFSM extends SubsystemBase {
     return
       runOnce(()->currentState = State.MyState8)      
       .andThen(()->{
-        LEDPattern currentStateSignal = oneLED(7, Color.kRed, Color.kBlack);
+        LEDPattern currentStateSignal = oneLEDSmeared(7, Color.kRed, Color.kBlack);
         m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
@@ -201,19 +201,26 @@ public class MooreLikeFSM extends SubsystemBase {
   }
 
   /**
-   * Turn on one LED in the string view
+   * Turn on one bright LED in the string view
+   * Turn on its neighbors dimly. If "animated" then it smears or comet-tails.
    * 
    * @param index which LED to turn on
    * @param colorForeground color of the on LED
    * @param colorBackground color of the off LEDs
    * @return Pattern to apply to the LED view
    */
-  static final LEDPattern oneLED(int index, Color colorForeground, Color colorBackground) {
+  static final LEDPattern oneLEDSmeared(int index, Color colorForeground, Color colorBackground) {
     return (reader, writer) -> {
       int bufLen = reader.getLength();
+      final int slightlyDim = 180;
+      final int dim = 120;
       for (int led = 0; led < bufLen; led++) {
         if(led == index) {
           writer.setLED(led, colorForeground);              
+        } else if((led == index-2 && index-2 >= 0) || (led == index+2 && index+2 < bufLen)) {
+          writer.setRGB(led, (int) (colorForeground.red * dim), (int) (colorForeground.green * dim), (int) (colorForeground.blue * dim));
+        } else if((led == index-1 && index-1 >= 0) || (led == index+1 && index+1 < bufLen)) {
+          writer.setRGB(led, (int) (colorForeground.red * slightlyDim), (int) (colorForeground.green * slightlyDim), (int) (colorForeground.blue * slightlyDim));
         } else {
         writer.setLED(led, colorBackground);              
         }
