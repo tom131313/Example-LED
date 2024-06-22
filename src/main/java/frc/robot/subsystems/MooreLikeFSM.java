@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class MooreLikeFSM extends SubsystemBase {
 
   private final LEDView m_robotSignals; // LED view where the output is displayed
-  private double m_periodFactor = 10.; // changeable speed of the scanner
+  private double m_periodFactor; // changeable speed of the scanner
   private final Color m_color; // changeable color of the scanner
   private final double m_numberPeriods = 14.0; // number of periods or time bins to generate time-based triggers
 
