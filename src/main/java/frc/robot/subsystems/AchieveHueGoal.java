@@ -9,7 +9,7 @@ package frc.robot.subsystems;
  * goal.
  *
  * Note that this is a simple contrived example based on a PID controller. There may be better ways
- * to do PID controller entirely within a subsystem.
+ * to do PID controller with Commands.
  */
 
 import static edu.wpi.first.units.Units.Seconds;
@@ -62,10 +62,11 @@ public class AchieveHueGoal {
 
   // Example of methods and triggers that the system will require are put here.
 
-  // Methods that change the system should be "private".
-  // Methods and triggers that inquire about the system should be "public".
-  // To get periodic behavior with Command-Based structure the "before" and "after" must be
-  // "public" so patch on extra protection for them.
+  // Methods that change the subsystem should be private.
+  // Methods and triggers that inquire about the system must be public.
+  // To get periodic behavior with Command-Based structure the "before" and "after" must be public.
+  // There are other methods to get periodic execution. The Robot.addPeriodic could be injected.
+  // Subsystem periodic could be used under past threats of deprecation. EventLoop might be of use.
 
   /**
    * Run before commands and triggers
@@ -76,41 +77,31 @@ public class AchieveHueGoal {
    * Run after commands and triggers
    */
   public void runAfterCommands() {
-    // must be public to get this run periodically but don't allow just anyone to run this
-    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    StackTraceElement element = stackTrace[2];
-    if ("frc.robot.RobotContainer".equals(element.getClassName())
-          && "runAfterCommands".equals(element.getMethodName())) {
-      // running valid from RobotContainer.afterCommands
+    // here's the controller that runs periodically based on the Goal that was set
+    LEDPattern currentStateSignal;
+    if (!Double.isNaN(m_hueSetpoint)) {
+      // setpoint has been set so run controller periodically
 
-      // here's the controller that runs based on the Goal that was set
-      LEDPattern currentStateSignal;
-      if (!Double.isNaN(m_hueSetpoint)) {
-        // setpoint has been set so run controller periodically
-
-        // Note that the WPILib PID controller knows if it has a setpoint and measurement
-        // but that information is private and not accessible. We need to know that here
-        // so the signals stay at their initial state (assumed off) until a setpoint set.
-        m_currentStateHue =
-            MathUtil.clamp(
-                m_currentStateHue + m_hueController.calculate(m_currentStateHue, m_hueSetpoint),
-                m_minimumHue,
-                m_maximumHue);
-        currentStateSignal =
-            LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200)); // display state;
-      } else {
-        currentStateSignal =
-            LEDPattern.solid(Color.fromHSV(0, 0, 0)); // display state off - black;        
-      }
-
-      if (m_hueController.atSetpoint()) {
-        currentStateSignal = currentStateSignal.blink(Seconds.of(0.1)); // blink if made it to the Goal
-      }
-      m_robotSignals.setSignalOnce(currentStateSignal).schedule(); // access to the LEDs is only by
-                                                      // command in this example so do it that way. 
+      // Note that the WPILib PID controller knows if it has a setpoint and measurement
+      // but that information is private and not accessible. We need to know that here
+      // so the signals stay at their initial state (assumed off) until a setpoint is set.
+      m_currentStateHue =
+          MathUtil.clamp(
+              m_currentStateHue + m_hueController.calculate(m_currentStateHue, m_hueSetpoint),
+              m_minimumHue,
+              m_maximumHue);
+      currentStateSignal =
+          LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200)); // display state;
     } else {
-      throw new IllegalCallerException("Only callable from RobotContainer.runAfterCommands");
+      currentStateSignal =
+          LEDPattern.solid(Color.fromHSV(0, 0, 0)); // display state off - black;        
     }
+
+    if (m_hueController.atSetpoint()) {
+      currentStateSignal = currentStateSignal.blink(Seconds.of(0.1)); // blink if made it to the Goal
+    }
+     // changing the state of LED subsystem is by command as it should be for all subsystems
+    m_robotSignals.setSignalOnce(currentStateSignal).schedule();   
  }
 
   /**
@@ -193,3 +184,16 @@ public class AchieveHueGoal {
     }
   }
 }
+/**
+If for some reason high security is needed to prevent unauthorized calls to a periodic method
+than it could be done this way:
+    // must be public to get this run periodically but don't allow just anyone to run this
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    StackTraceElement element = stackTrace[2];
+    if ("frc.robot.RobotContainer".equals(element.getClassName())
+          && "runAfterCommands".equals(element.getMethodName())) {
+      // running valid from RobotContainer.afterCommands
+    } else {
+      throw new IllegalCallerException("Only callable from RobotContainer.runAfterCommands");
+    }
+ */

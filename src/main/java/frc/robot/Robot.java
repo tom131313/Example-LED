@@ -187,10 +187,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    // get a consistent set of all inputs
-    m_robotContainer.runBeforeCommands();
-    // check all the triggers and run all the scheduled commands
+    // get a consistent set of all inputs including non-subsystems not in scheduler run
+    m_robotContainer.runBeforeCommands(); // this is essentially similar to running the scheduler
+
+    // check all the triggers and run all the scheduled commands; subsystem periodics are run first
     CommandScheduler.getInstance().run();
+
     // write outputs such as logging, dashboards, indicators, and goal-oriented subsystem periodic
     m_robotContainer.runAfterCommands();
   }

@@ -85,9 +85,9 @@ public class GroupDisjointTest extends SubsystemBase {
   private final GroupDisjoint[]
       m_groupDisjoint = // subsystems that provide the requirements for testing
       {new GroupDisjoint("A"), new GroupDisjoint("B"), new GroupDisjoint("C")};
-  private final int m_a = 0; // subsystem id is subscript on the array of groupDisjoint subsystems
-  private final int m_b = 1;
-  private final int m_c = 2;
+  private static final int m_a = 0; // subsystem id is subscript on the array of groupDisjoint subsystems
+  private static final int m_b = 1;
+  private static final int m_c = 2;
 
   public final Command m_disjointedSequenceTest; // created at ctor so available immediately on demand
 
@@ -640,5 +640,81 @@ A1BdCdA1BdCdA1BdCdA1BdCdA1BdCdA1BdCd
 END testDisjointRaceParallel
 
 AdBdCdAdBdCd
+** the end of disjoint sequence tests interrupted flag = false
+*/
+
+/*refactored
+
+** starting disjoint sequence tests
+
+START testSequence
+AdBdCdAdBdCdBdCdA1BdCdBdCdBdCdBd
+CdBdCdA2
+END testSequence
+
+BdCdAd
+
+START testDisjointSequence
+BdCdAdBdCdAdBdCdA1BdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdAdBdCdA2
+END testDisjointSequence
+
+BdCdAd
+
+START testRepeatingSequence
+BdCdAdBdCdAdA1A1A1B1B1B1C1C1C1A1A1A1A1B1B1B1C1C1C1A1A1A1A1B1B1B1
+END testRepeatingSequence
+
+AdBdCd
+
+START testDisjointRepeatingSequence - incorrect results - library bug
+AdBdCdAdBdCdBdCdA1BdCdA1BdCdA1BdCdAdCdAdB1CdAdB1CdAdB1CdAdBdAdBdC1AdBdC1AdBdC1AdBdCdAdBdCdCdA1B1CdA1B1CdA1B1CdAdBdAdBdC1AdBdC1AdBdC1AdBdCdAdBdCdCdA1B1CdA1B1
+END testDisjointRepeatingSequence - incorrect results - library bug
+
+CdA1B1
+
+START testParallel
+CdAdBdCdAdBdC1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1C1B1B1B1B1B1B1B1B1A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2A1B2B2B2B2B2B2B2B2
+END testParallel
+
+AdBdCd
+
+START testDisjointParallel
+AdBdCdAdBdCdAdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdB1CdAdCdBdCdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdA1B2CdB2AdCdB2AdCdB2AdCdB2AdCdB2AdCdB2AdCdB2AdCdB2Ad
+END testDisjointParallel
+
+CdAdBd
+
+START testManualDisjointParallel
+CdAdBdCdAdBdAdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdC1B1AdB1CdAdB1CdAdB1CdAdB1CdAdB1Cd
+AdB1CdAdCdBdCdB2A1CdB2A1CdB2A1CdB2A1CdB2A1
+CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2A1CdB2AdCdB2AdCdB2AdCdB2AdCdB2AdCdB2AdCdB2AdCdB2Ad
+END testManualDisjointParallel
+
+CdAdBd
+
+START testDeadlineParallel
+CdAdBdCdAdBdA1B1C1A1B1C1A1B1C1A1B1C1A1B1C1B1C1C1C1C1C1C1C1C1C1C1C1
+END testDeadlineParallel
+
+AdBdCd
+
+START testDisjointDeadlineParallel
+AdBdCdAdBdCdB1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1AdB1C1AdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBdC1AdBd
+END testDisjointDeadlineParallel
+
+C1AdBd
+
+START testRaceParallel
+AdBdCdAdBdCdC1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1A1A1A1A1A1A1
+END testRaceParallel
+
+AdBdCd
+
+START testDisjointRaceParallel
+AdBdCdAdBdCdC1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1C1A1B1A1BdCdA1BdCdA1BdCdA1BdCdA1BdCdA1BdCd
+END testDisjointRaceParallel
+
+BdCdAdBdCdAd
+
 ** the end of disjoint sequence tests interrupted flag = false
 */
