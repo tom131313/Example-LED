@@ -74,7 +74,7 @@ public class RobotContainer {
   private void configureBindings() {
 
     /**
-     * Use operator controller "B" button for a fake indicator game piece is acquired
+     * Use operator "B" button for a fake indicator game piece is acquired
      */
     m_operatorController.b().whileTrue(m_intake.gamePieceIsAcquired());
 
@@ -97,10 +97,10 @@ public class RobotContainer {
     /**
       * Goal setting demo control
       *
-      * The PID controller is not running initially until a setpoint is set by moving the Xbox
-      * right trigger axis past the threshold at which time a command runs forever to accept new
-      * setpoints. The reset function on the Xbox A button interrupts the command that accepts new
-      * setpoints and stops the underlying controller process.
+      * The PID controller is not running initially until a setpoint is set by moving the operator
+      * right trigger axis past the threshold at which time a command runs "forever" to accept new
+      * setpoints. The operator "A" button interrupts the command that accepts new setpoints and
+      * stops the underlying controller process as does disabled mode.
       */
     var triggerHueGoalDeadBand = 0.05; //triggers if past a small threshold (scale of 0 to 1)
     m_operatorController.rightTrigger(triggerHueGoalDeadBand)
