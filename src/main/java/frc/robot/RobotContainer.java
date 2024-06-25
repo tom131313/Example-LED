@@ -6,7 +6,7 @@ package frc.robot;
 
 /**
  * Create subsystems, triggers, and commands; bind buttons to commands and triggers; define command
- * logging;, manage the details of what is periodically processed before and after the command
+ * logging; manage the details of what is periodically processed before and after the command
  * scheduler loop; - everything until it got too big and some logical splits to other classes had to
  * be made.
  */
@@ -74,20 +74,19 @@ public class RobotContainer {
   private void configureBindings() {
 
     /**
-     * Use operator controller for a fake indicator game piece is acquired
+     * Use operator controller "B" button for a fake indicator game piece is acquired
      */
     m_operatorController.b().whileTrue(m_intake.gamePieceIsAcquired());
 
     /**
-     * History FSM Control
-     * Trigger if operator pressed "Y" button or it's time for a new color
+     * Start History FSM Control with the operator "Y" button or it's time for a new color
      */
     var yButtonDebounceTime = Milliseconds.of(40.0);
     m_operatorController.y().debounce(yButtonDebounceTime.in(Seconds)).or(m_historyFSM::timesUp)
         .onTrue(m_historyFSM.newColor());
 
     /**
-     * Start a color wheel display
+     * Start a color wheel display with the operator "X" button
      */
     var xButtonDebounceTime = Milliseconds.of(30.0);
     m_operatorController

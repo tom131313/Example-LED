@@ -176,8 +176,9 @@ public class AchieveHueGoal {
      * 
      * <p>Runs forever accepting goals dynamically from the Supplier.
      * 
-     * <p>Generally not needed but may be interrupted by calling it again to change the Supplier
-     * or may need to be "refreshed" if stopped by "disable".
+     * <p>May be interrupted by calling it again to change the Supplier, may cancel by "disable",
+     * or may be interrupted by the "reset" command. In those cases this command must be restarted
+     * to accept goals.
      * 
      * <p>Used in this example program.
      * 
