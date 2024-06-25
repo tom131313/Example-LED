@@ -27,26 +27,13 @@ import java.util.function.DoubleSupplier;
 
 /**
  * PID controller to achieve (slowly by over-damped kP gain) a color hue goal set by joystick right
- * trigger and display on the LEDs.
+ * trigger and display progress toward goal on the LEDs.
  */
 public class AchieveHueGoal {
-  /**
-   *  PID initialization.
-   * 
-   *  The PID controller is ready but not running initially until a setpoint is set. When the
-   *  setpoint is set the controller starts and runs forever until the reset function is invoked.
-   */
-  private static final double m_kP = 0.025;
-  private static final double m_kI = 0.0;
-  private static final double m_kD = 0.0;
-  private final PIDController m_hueController = new PIDController(m_kP, m_kI, m_kD);
-  private static final double m_minimumHue = 0.0;
-  private static final double m_maximumHue = 180.0;
-  private static final double m_tolerance = 2.0;
-  // initialize setpoint (goal) such that the controller doesn't start until setpoint is set
-  private double m_hueSetpoint = Double.NaN;
-  private double m_currentStateHue = 0.0; // also considered the initial and previous state
 
+  private final PIDController m_hueController;
+  double m_hueSetpoint;
+  double m_currentStateHue;
   private final LEDView m_robotSignals; // where the output is displayed
   public final HueGoal m_hueGoal = new HueGoal(); // subsystem protected goal
 
@@ -57,7 +44,21 @@ public class AchieveHueGoal {
    */
   public AchieveHueGoal(LEDView robotSignals) {
     this.m_robotSignals = robotSignals;
-    m_hueController.setTolerance(m_tolerance);
+    /**
+     *  PID initialization.
+     * 
+     *  The PID controller is ready but not running initially until a setpoint is set. When the
+     *  setpoint is set the controller starts and runs forever until the reset function is invoked.
+     */
+    m_hueSetpoint = Double.NaN; // initialize setpoint (goal) such that the controller doesn't
+                                // start until setpoint is set
+    m_currentStateHue = 0.0; // also considered the initial and previous state
+    final double kP = 0.025;
+    final double kI = 0.0;
+    final double kD = 0.0;
+    m_hueController = new PIDController(kP, kI, kD);
+    final double tolerance = 2.0;
+    m_hueController.setTolerance(tolerance);
   }
 
   // Example of methods and triggers that the system will require are put here.
@@ -69,16 +70,15 @@ public class AchieveHueGoal {
   // Subsystem periodic could be used under past threats of deprecation. EventLoop might be of use.
 
   /**
-   * Run before commands and triggers
+   * Update Hue Controller Calculation
+   * 
+   * <p>Must be run periodically based on the Goal that was set.
    */
-  public void runBeforeCommands() {}
-
-  /**
-   * Run after commands and triggers
-   */
-  public void runAfterCommands() {
-    // here's the controller that runs periodically based on the Goal that was set
+  private void updateHueController() {
+    final double minimumHue = 0.0;
+    final double maximumHue = 180.0;
     LEDPattern currentStateSignal;
+
     if (!Double.isNaN(m_hueSetpoint)) {
       // setpoint has been set so run controller periodically
 
@@ -88,8 +88,8 @@ public class AchieveHueGoal {
       m_currentStateHue =
           MathUtil.clamp(
               m_currentStateHue + m_hueController.calculate(m_currentStateHue, m_hueSetpoint),
-              m_minimumHue,
-              m_maximumHue);
+              minimumHue,
+              maximumHue);
       currentStateSignal =
           LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200)); // display state;
     } else {
@@ -100,9 +100,21 @@ public class AchieveHueGoal {
     if (m_hueController.atSetpoint()) {
       currentStateSignal = currentStateSignal.blink(Seconds.of(0.1)); // blink if made it to the Goal
     }
-     // changing the state of LED subsystem is by command as it should be for all subsystems
-    m_robotSignals.setSignalOnce(currentStateSignal).schedule();   
- }
+    // changing the state of LED subsystem is by command as it should be for (almost) all subsystems
+    m_robotSignals.setSignalOnce(currentStateSignal).schedule();
+  }
+
+  /**
+   * Run before commands and triggers
+   */
+  public void runBeforeCommands() {}
+
+  /**
+   * Run after commands and triggers
+   */
+  public void runAfterCommands() {
+    updateHueController(); // periodic update of the system (it's not a subsystem - the goal is)
+  }
 
   /**
    * Subsystem to lock the resource if a command is running and provide a default command.
@@ -123,8 +135,10 @@ public class AchieveHueGoal {
    * <p>Note that this implementation does not start the controller until a setpoint as been set.
    * The controller stops when the goal is unset (goal = Double.NaN or reset()).
    *
-   * <p>Command defaultCommand = runOnce(() -> m_hueSetpoint = defaultHueGoal);
-   * setDefaultCommand(defaultCommand);
+   * <p>Possible:<pre>
+   * Command defaultCommand = runOnce(() -> m_hueSetpoint = defaultHueGoal);
+   *setDefaultCommand(defaultCommand);
+   * </pre>
    */
   public class HueGoal extends SubsystemBase {
     private HueGoal() {}
@@ -184,16 +198,3 @@ public class AchieveHueGoal {
     }
   }
 }
-/**
-If for some reason high security is needed to prevent unauthorized calls to a periodic method
-than it could be done this way:
-    // must be public to get this run periodically but don't allow just anyone to run this
-    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    StackTraceElement element = stackTrace[2];
-    if ("frc.robot.RobotContainer".equals(element.getClassName())
-          && "runAfterCommands".equals(element.getMethodName())) {
-      // running valid from RobotContainer.afterCommands
-    } else {
-      throw new IllegalCallerException("Only callable from RobotContainer.runAfterCommands");
-    }
- */

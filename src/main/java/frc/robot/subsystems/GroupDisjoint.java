@@ -88,7 +88,7 @@ public class GroupDisjoint extends SubsystemBase {
   /**
    * Command Factory for GroupDisjointTest subsystems
    * 
-   * The syntax is slightly easier to read than using "new TestDuration()".
+   * Using this syntax is slightly easier to read than using "new TestDuration()".
    *
    * @param testNumber output this number and the resource (subsystem) ID
    * @param testDuration elapsed time to run execute() to produce output
