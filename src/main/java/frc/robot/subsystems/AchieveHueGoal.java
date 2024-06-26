@@ -37,14 +37,14 @@ import java.util.function.DoubleSupplier;
 
 /**
  * PID controller to achieve (slowly by over-damped kP gain) a color hue goal set by joystick right
- * trigger and display progress toward goal on the LEDs.
+ * trigger axis and display progress toward goal on the LEDs.
  */
 public class AchieveHueGoal extends SubsystemBase {
 
   private final PIDController m_hueController;
   double m_hueSetpoint;
   double m_currentStateHue;
-  LEDPattern m_currentStateSignal;
+  LEDPattern m_currentStateSignal; // what to display
   private final LEDView m_robotSignals; // where the output is displayed
 
   /**
@@ -56,18 +56,17 @@ public class AchieveHueGoal extends SubsystemBase {
     this.m_robotSignals = robotSignals;
     /**
      *  PID initialization.
-     *  The PID controller is ready but not running initially until a command is issued.
+     *  The PID controller is ready but not running initially until a command is issued
+     *  with a setpoint.
      */
     m_currentStateHue = 0.0; // also considered the initial and previous state
     final double kP = 0.025;
     final double kI = 0.0;
     final double kD = 0.0;
     m_hueController = new PIDController(kP, kI, kD);
-    final double tolerance = 2.0;
+    final double tolerance = 2.0; // hue range is 0 to 180
     m_hueController.setTolerance(tolerance);
   }
-
-  // Example of methods and triggers that the subsystem will require are put here.
 
   // Methods that change the subsystem should be private.
   // Methods that inquire about the system must be public.
@@ -77,7 +76,7 @@ public class AchieveHueGoal extends SubsystemBase {
    * Set the Goal and Move Toward The Goal.
    *
    * <p>Runs until the goal has been achieved within the tolerance at which time the end is
-   * indicated and it stops.
+   * indicated and the controller/command stops.
    * 
    * @param goal dynamically supplied hue 0 to 180 (computer version of a color wheel)
    * @return command used to set and achieve the goal
@@ -91,22 +90,23 @@ public class AchieveHueGoal extends SubsystemBase {
         runOnce(()->{ // be sure of a fresh start
           m_hueController.reset();
           m_currentStateHue = 0; // also considered the initial and previous state
-          m_currentStateSignal = LEDPattern.kOff; // initialize pattern since the deadline below has a race to use it
+          m_currentStateSignal = LEDPattern.kOff; // initialize pattern since the deadline below
+                                                  // has a race to use it
           }
           ),
 
         run(() -> { // run to the setpoint displaying state progress as it runs
                 m_currentStateHue = // compute the current state
                     MathUtil.clamp(
-                        m_currentStateHue + m_hueController.calculate(m_currentStateHue, hueSetpoint.getAsDouble()),
+                        m_currentStateHue
+                         + m_hueController.calculate(m_currentStateHue, hueSetpoint.getAsDouble()),
                         minimumHue,
                         maximumHue);
                 m_currentStateSignal = // color for the current state
                     LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200));
               }
             ).until(m_hueController::atSetpoint)
-          
-          .deadlineWith( // display the color of the current state as it's continually recalculated above
+        .deadlineWith( // display the color of the current state as it's continually recalculated above
         m_robotSignals.setSignal(()->m_currentStateSignal)),
 
         m_robotSignals.setSignal(()->m_currentStateSignal.blink(Seconds.of(0.1)))
@@ -118,7 +118,7 @@ public class AchieveHueGoal extends SubsystemBase {
           }
           ),
 
-        m_robotSignals.setSignalOnce(LEDPattern.solid(Color.fromHSV(100, 100, 100))) // off signal - dim gray
+        m_robotSignals.setSignalOnce(LEDPattern.solid(Color.fromHSV(100, 100, 100))) // off signal
       );
   }
 
