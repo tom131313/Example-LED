@@ -180,15 +180,6 @@ public class RobotSignals {
     }
 
     /**
-     * Put an LED Pattern into the view (once)
-     *
-     * @param pattern
-     */
-    public void setSignalDirect(LEDPattern pattern) {
-      pattern.applyTo(m_view);
-    }
-
-    /**
      * Put a dynamic LED Pattern into the view - keep running
      *
      * @param pattern

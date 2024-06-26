@@ -88,35 +88,37 @@ public class AchieveHueGoal extends SubsystemBase {
     return
       sequence(
 
-        runOnce(m_hueController::reset), // be sure of a fresh start
+        runOnce(()->{ // be sure of a fresh start
+          m_hueController.reset();
+          m_currentStateHue = 0; // also considered the initial and previous state
+          m_currentStateSignal = LEDPattern.kOff; // initialize pattern since the deadline below has a race to use it
+          }
+          ),
 
         run(() -> { // run to the setpoint displaying state progress as it runs
-              m_currentStateHue =
-                  MathUtil.clamp(
-                      m_currentStateHue + m_hueController.calculate(m_currentStateHue, hueSetpoint.getAsDouble()),
-                      minimumHue,
-                      maximumHue);
-              m_currentStateSignal =
-                  LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200));
-              m_robotSignals.setSignalDirect(m_currentStateSignal);    
-            }
-          ).until(m_hueController::atSetpoint),
-
-        run(()-> {// blink for a short time at the end
-              m_currentStateSignal = m_currentStateSignal.blink(Seconds.of(0.1));
-              m_robotSignals.setSignalDirect(m_currentStateSignal);    
+                m_currentStateHue = // compute the current state
+                    MathUtil.clamp(
+                        m_currentStateHue + m_hueController.calculate(m_currentStateHue, hueSetpoint.getAsDouble()),
+                        minimumHue,
+                        maximumHue);
+                m_currentStateSignal = // color for the current state
+                    LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200));
               }
-          ).withTimeout(3.),
+            ).until(m_hueController::atSetpoint)
+          
+          .deadlineWith( // display the color of the current state as it's continually recalculated above
+        m_robotSignals.setSignal(()->m_currentStateSignal)),
 
-        runOnce(m_hueController::reset), // reset again to be neat (stop other devices as needed)
+        m_robotSignals.setSignal(()->m_currentStateSignal.blink(Seconds.of(0.1)))
+          .withTimeout(3.),
 
-        runOnce(() -> { // go dark - controller not running
-              m_currentStateHue = 0; // also considered the initial and previous state
-              m_currentStateSignal =
-                    LEDPattern.solid(Color.fromHSV(100, 100, 100));
-              m_robotSignals.setSignalDirect(m_currentStateSignal);
-              }
-          )
+        runOnce(()->{ // be neat; stop other devices as needed
+          m_hueController.reset();
+          m_currentStateHue = 0; // also considered the initial and previous state
+          }
+          ),
+
+        m_robotSignals.setSignalOnce(LEDPattern.solid(Color.fromHSV(100, 100, 100))) // off signal - dim gray
       );
   }
 
