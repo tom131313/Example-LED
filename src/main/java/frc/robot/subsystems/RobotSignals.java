@@ -139,6 +139,7 @@ public class RobotSignals {
 
   /** LED view resource (subsystem) */
   public class LEDView extends SubsystemBase {
+
     private final AddressableLEDBufferView m_view;
 
     private LEDView(AddressableLEDBufferView view) {
@@ -176,6 +177,15 @@ public class RobotSignals {
      */
     public Command setSignal(LEDPattern pattern) {
       return run(() -> pattern.applyTo(m_view)).ignoringDisable(true).withName("LedSet");
+    }
+
+    /**
+     * Put an LED Pattern into the view (once)
+     *
+     * @param pattern
+     */
+    public void setSignalDirect(LEDPattern pattern) {
+      pattern.applyTo(m_view);
     }
 
     /**
