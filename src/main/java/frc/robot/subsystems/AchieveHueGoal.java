@@ -78,7 +78,7 @@ public class AchieveHueGoal extends SubsystemBase {
    * <p>Runs until the goal has been achieved within the tolerance at which time the end is
    * indicated and the controller/command stops.
    * 
-   * @param goal dynamically supplied hue 0 to 180 (computer version of a color wheel)
+   * @param hueSetpoint the goal is dynamically supplied hue 0 to 180 (computer version of a color wheel)
    * @return command used to set and achieve the goal
    */
   public Command displayHue(DoubleSupplier hueSetpoint) {
@@ -87,13 +87,7 @@ public class AchieveHueGoal extends SubsystemBase {
     return
       sequence(
 
-        runOnce(()->{ // be sure of a fresh start
-          m_hueController.reset();
-          m_currentStateHue = 0; // also considered the initial and previous state
-          m_currentStateSignal = LEDPattern.kOff; // initialize pattern since the deadline below
-                                                  // has a race to use it
-          }
-          ),
+        runOnce(this::reset),
 
         run(() -> { // run to the setpoint displaying state progress as it runs
                 m_currentStateHue = // compute the current state
@@ -105,21 +99,44 @@ public class AchieveHueGoal extends SubsystemBase {
                 m_currentStateSignal = // color for the current state
                     LEDPattern.solid(Color.fromHSV((int) m_currentStateHue, 200, 200));
               }
-            ).until(m_hueController::atSetpoint)
-        .deadlineWith( // display the color of the current state as it's continually recalculated above
-        m_robotSignals.setSignal(()->m_currentStateSignal)),
+            )
+          
+          .until(m_hueController::atSetpoint) // controller stops; momentum stable or not
 
-        m_robotSignals.setSignal(()->m_currentStateSignal.blink(Seconds.of(0.1)))
-          .withTimeout(3.),
+          // parallel display the color of the current state as it's continually recalculated above
+          .deadlineWith(m_robotSignals.setSignal(()->m_currentStateSignal)),
 
-        runOnce(()->{ // be neat; stop other devices as needed
-          m_hueController.reset();
-          m_currentStateHue = 0; // also considered the initial and previous state
-          }
-          ),
+        // blink for a while to show at setpoint
+        m_robotSignals.setSignal(()->m_currentStateSignal.blink(Seconds.of(0.1))).withTimeout(2.0)
+      )
+      .finallyDo(this::reset); // cleanup the controller but it was stopped or interrupted above
+  }
 
-        m_robotSignals.setSignalOnce(LEDPattern.solid(Color.fromHSV(100, 100, 100))) // off signal
-      );
+  /**
+   * Reset or stop the controller
+   * 
+   * <p>Normally used in finallyDo() at the end of a controller command to assure stopping
+   */
+  public void reset() {
+    // also stop other devices as needed but not needed in this example
+    m_hueController.reset();
+    m_currentStateHue = 0; // also considered the initial and previous state
+    // signal pattern needed initially because of the race to show it first; then last for off
+    m_currentStateSignal = LEDPattern.solid(Color.kGray);
+    m_robotSignals.setSignalOnceDirect(m_currentStateSignal); // display off signal
+  }
+
+  /**
+   * Immediately interrupt the controller command.
+   * 
+   * <p>Null command works merely by its existence; assuming the underlying controller command allows interrupts
+   * and cleanly handles interrupts with "finallyDo()".
+   * 
+   * @return Command normally used to interrupt and stop the controller while it's running as a command
+   */
+  public Command interrupt() {
+    return
+      runOnce(() -> {});
   }
 
   /**
