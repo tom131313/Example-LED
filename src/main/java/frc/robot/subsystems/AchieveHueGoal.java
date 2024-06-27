@@ -115,7 +115,7 @@ public class AchieveHueGoal extends SubsystemBase {
   /**
    * Reset or stop the controller
    * 
-   * <p>Normally used in finallyDo() at the end of a controller command to assure stopping
+   * <p>Used first to initialize and in finallyDo() at the end of a controller command to assure stopping
    */
   public void reset() {
     // also stop other devices as needed but not needed in this example
