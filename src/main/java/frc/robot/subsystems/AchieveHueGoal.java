@@ -15,6 +15,10 @@ package frc.robot.subsystems;
  * That scheme might not be fully in the spirit of command-based so this example is not encouraging
  * that usage.
  * 
+ * BUT BUT BUT
+ * The default command for the LED subsystem is used exactly as described above. The default
+ * command is running continuously displaying whatever is currently set as the pattern to display.
+ * 
  * A suggestion by CD @Amicus1 for those against using commands except to set the goal:
  * If this is a verbosity of code issue, I suggest writing the logic as a private subsystem method
  * and exposing it as a command factory.
@@ -22,6 +26,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.Commands.sequence;
+import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
 
 import frc.robot.Color;
 import frc.robot.LEDPattern;
@@ -30,7 +35,6 @@ import frc.robot.subsystems.RobotSignals.LEDView;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import java.util.function.DoubleSupplier;
@@ -42,9 +46,9 @@ import java.util.function.DoubleSupplier;
 public class AchieveHueGoal extends SubsystemBase {
 
   private final PIDController m_hueController;
-  double m_hueSetpoint;
-  double m_currentStateHue;
-  LEDPattern m_currentStateSignal; // what to display
+  private double m_currentStateHue;
+  private LEDPattern m_notRunningSignal = LEDPattern.solid(Color.kGray);
+  private LEDPattern m_currentStateSignal = m_notRunningSignal; // initially then what to display on LEDs
   private final LEDView m_robotSignals; // where the output is displayed
 
   /**
@@ -56,9 +60,11 @@ public class AchieveHueGoal extends SubsystemBase {
     this.m_robotSignals = robotSignals;
     /**
      *  PID initialization.
-     *  The PID controller is ready but not running initially until a command is issued
-     *  with a setpoint.
+     *  The PID controller is ready but not running initially until a command is issued with a
+     *  setpoint.
+     *  LED default command will display continuously in the "background" as patterns change.
      */
+    robotSignals.setDefaultCommand(m_robotSignals.setSignal(()-> m_currentStateSignal));
     m_currentStateHue = 0.0; // also considered the initial and previous state
     final double kP = 0.025;
     final double kI = 0.0;
@@ -67,10 +73,6 @@ public class AchieveHueGoal extends SubsystemBase {
     final double tolerance = 2.0; // hue range is 0 to 180
     m_hueController.setTolerance(tolerance);
   }
-
-  // Methods that change the subsystem should be private.
-  // Methods that inquire about the system must be public.
-  // Triggers bound within should be private.
 
   /**
    * Set the Goal and Move Toward The Goal.
@@ -101,13 +103,11 @@ public class AchieveHueGoal extends SubsystemBase {
               }
             )
           
-          .until(m_hueController::atSetpoint) // controller stops; momentum stable or not
+          .until(m_hueController::atSetpoint), // controller stops; momentum stable or not
 
-          // parallel display the color of the current state as it's continually recalculated above
-          .deadlineWith(m_robotSignals.setSignal(()->m_currentStateSignal)),
-
-        // blink for a while to show at setpoint
-        m_robotSignals.setSignal(()->m_currentStateSignal.blink(Seconds.of(0.1))).withTimeout(2.0)
+        // set to blink for a while to show at setpoint
+        runOnce(()-> m_currentStateSignal = m_currentStateSignal.blink(Seconds.of(0.1))),
+        waitSeconds(2.0) // let the LEDs blink by the default command in the "background"
       )
       .finallyDo(this::reset); // cleanup the controller but it was stopped or interrupted above
   }
@@ -121,9 +121,7 @@ public class AchieveHueGoal extends SubsystemBase {
     // also stop other devices as needed but not needed in this example
     m_hueController.reset();
     m_currentStateHue = 0; // also considered the initial and previous state
-    // signal pattern needed initially because of the race to show it first; then last for off
-    m_currentStateSignal = LEDPattern.solid(Color.kGray);
-    m_robotSignals.setSignalOnceDirect(m_currentStateSignal); // display off signal
+    m_currentStateSignal = m_notRunningSignal;
   }
 
   /**
