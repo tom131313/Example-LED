@@ -5,23 +5,71 @@
 package frc.robot.subsystems;
 
 /*
- * Example of a subsystem that is a (PID) controller to achieve a goal (setpoint).
+ * Example of a subsystem that uses a (PID) controller to achieve a goal (setpoint).
  * 
- * WHAT THIS IS NOT:
- * Some teams use the structure of a (perpetually, possibly) running system (class) that is
- * self-contained and periodically updated within itself. No commands are used to calculate or
- * schedule calculations. It responds to commands only to accept the goal (setpoint).
+ * There are several possible ways to implement this function.
  * 
- * That scheme might not be fully in the spirit of command-based so this example is not encouraging
- * that usage.
+ * Some teams use the structure of a perpetually running subsystem or other class that is the
+ * controller that periodically updates. No commands are used to calculate or schedule
+ * calculations. It responds to commands only to accept the goal (setpoint). There are a few ways
+ * the periodic update can be scheduled:
  * 
- * BUT BUT BUT BUT
- * The default command for the LED subsystem is used exactly as described above. The default
- * command is running continuously displaying whatever is currently set as the pattern to display.
+ *  use the Subsystem.periodic() method (not recommended and may be deprecated sometime),
+ * 
+ *  inject the Robot.addPeriodic() method (allows update faster or slower than the normal loop but
+ *  is hard to specify exactly where to sync with other commands - run first is nearly precise but
+ *  run last is only approximated),
+ * 
+ *  use team supplied runBeforeCommands() and runAfterCommands() methods surrounding the
+ *  Robot.CommandScheduler.getInstance() method.
+ * 
+ * Those goal-setting commands or other schemes needed in the above controllers may or may not be
+ * protected by use of their own subsystem.
+ * 
+ * The above schemes might not be fully in the spirit of command-based so this example is not
+ * encouraging that usage.
+ * 
+ * There are few ways to run a controller scheduled from the Command Loop.
+ * 
+ * The default command will run perpetually if there is no other overriding command issued. That
+ * default command can encompass the controller and manage the goal setting (setpoint). The default
+ * command has an advantage of automatically restarting if interrupted for any reason.
+ * 
+ * A normal command can run perpetually and encompass the controller and manage the goal (setpoint).
+ * Normal commands do not restart if interrupted (unless some periodic monitoring process is added
+ * such as a default command or Robot.periodic() method to restart the interrupted command).
+ * 
+ * The best alternative to all the above schemes usually is a controller is run by command when it
+ * is needed.
  * 
  * A suggestion by CD @Amicus1 for those against using commands except to set the goal:
  * "If this is a verbosity of code issue, I suggest writing the logic as a private subsystem method
  * and exposing it as a command factory."
+ * 
+ * That is the bulk of the controller does not have to be coded "inline" making a very long command.
+ * The logic of the controller doesn't even have to be within a command or subsystem but can reside
+ * in its own class. The example of using a PID controller in this example subsystem works like
+ * that. The WPILib PIDController is an essentially independent class with all the PID logic. It is
+ * used by a command that accepts a setpoint and calls the appropriate calculation and setpoint
+ * methods. The command and thus the calculations run continuously as they are needed.
+ * displaying whatever is currently set as the pattern to display.
+ * 
+ * This example of PID controller to reach a goal of a selected color is actually a combination of
+ * two of the above command-based schemes.
+ * 
+ * First, a WPILib PID controller class is used on demand
+ * of a command to converge to the selected color. The iterative command loop paces the
+ * calculations.
+ * 
+ * Second, the display of the progress of the PID controller calculations to achieve
+ * the selected color is by a continuously running command that was scheduled when the robot code
+ * started. That command displays the color to be displayed at each iteration of the command loop.
+ * In this particular complex example the code was a bit cleaner with the LED color display running
+ * essentially hidden in the background without the additional parallel command surrounding the
+ * controller command with to simultaneously display on the LEDs.
+ * 
+ * The advantage of a "hidden" command is it is more modular with simpler modules. The disadvantage
+ * is you don't see the whole picture as readily and forget the proper use of a hidden function.
  */
 
 import static edu.wpi.first.units.Units.Seconds;
@@ -40,15 +88,17 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 
 /**
- * PID controller to achieve (slowly by over-damped kP gain) a color hue goal set by joystick right
- * trigger axis and display progress toward goal on the LEDs.
+ * Use a PID controller to achieve (slowly by over-damped kP gain) a color hue goal set by joystick
+ * right trigger axis and display progress toward goal on the LEDs.
  */
 public class AchieveHueGoal extends SubsystemBase {
 
   private final PIDController m_hueController;
   private double m_currentStateHue; // both the input and output of the controller
-  private LEDPattern m_notSeekingGoalSignal = LEDPattern.solid(Color.kGray);
-  private LEDPattern m_currentStateSignal = m_notSeekingGoalSignal; // initially then what to display on LEDs
+                                  // (simple example without the need of separate input and output)
+  private LEDPattern m_notSeekingGoalSignal = LEDPattern.solid(Color.kGray); // controller off signal
+   // initial state signal then continuously controller output signal to display on LEDs
+  private LEDPattern m_currentStateSignal = m_notSeekingGoalSignal;
   private final LEDView m_robotSignals; // where the output is displayed
 
   /**
@@ -110,9 +160,9 @@ public class AchieveHueGoal extends SubsystemBase {
         // set LED pattern to blink to show controller stopped at setpoint
         runOnce(()-> m_currentStateSignal = m_currentStateSignal.blink(Seconds.of(0.1))),
 
-        waitSeconds(2.0) // let the LEDs blink awhile by the default command in the "background"
+        waitSeconds(2.0) // let the LEDs blink awhile by the LED display command in the background
       )
-      .finallyDo(this::reset); // cleanup the controller it was mostly stopped or interrupted above
+      .finallyDo(this::reset); // the controller was mostly stopped or interrupted above
   }
 
   /**
@@ -140,6 +190,11 @@ public class AchieveHueGoal extends SubsystemBase {
       runOnce(() -> {});
   }
 
+  /**
+   * Display current controller status signal
+   * 
+   * @return Command to set color display
+   */
   public final Command achieveHueDisplay() {
     return
       m_robotSignals.setSignal(()-> m_currentStateSignal);
@@ -166,7 +221,7 @@ public class AchieveHueGoal extends SubsystemBase {
   }
 }
 
-/** @Oblarg post on Chief Delphi:
+/** The above example code of a PID controller usage follows #1 of @Oblarg post on Chief Delphi:
  * <pre><code>
  * // Example of two ways to create a PID controller Command as factory in a subsystem
  * // (Don't use the WPILib PIDControllerCommand; create your own with a factory)
