@@ -47,8 +47,8 @@ public class AchieveHueGoal extends SubsystemBase {
 
   private final PIDController m_hueController;
   private double m_currentStateHue; // both the input and output of the controller
-  private LEDPattern m_notRunningSignal = LEDPattern.solid(Color.kGray);
-  private LEDPattern m_currentStateSignal = m_notRunningSignal; // initially then what to display on LEDs
+  private LEDPattern m_notSeekingGoalSignal = LEDPattern.solid(Color.kGray);
+  private LEDPattern m_currentStateSignal = m_notSeekingGoalSignal; // initially then what to display on LEDs
   private final LEDView m_robotSignals; // where the output is displayed
 
   /**
@@ -64,14 +64,8 @@ public class AchieveHueGoal extends SubsystemBase {
      *  The PID controller is ready but not running initially until a command is issued with a
      *  setpoint.
      * 
-     *  LED subsystem default command will display continuously in the "background" as patterns
-     *  change. Won't need regular display command in command groups but if it was, then asProxy()
-     *  needed in group use if default command needs to run in a group, too.
-     * 
-     *  Considered flipping and using a regular command so there wasn't this perversion of the
-     *  default command but I like the default command's ability to restart no matter what happens.
+     *  LED command will display continuously in the "background" as patterns change.
      */
-    m_robotSignals.setDefaultCommand(m_robotSignals.setSignal(()-> m_currentStateSignal));
     m_currentStateHue = 0.0; // as input both the initial and previous state
     final double kP = 0.025;
     final double kI = 0.0;
@@ -90,7 +84,7 @@ public class AchieveHueGoal extends SubsystemBase {
    * @param hueSetpoint the goal is dynamically supplied hue 0 to 180 (computer version of a color wheel)
    * @return command used to set and achieve the goal
    */
-  public Command displayHue(DoubleSupplier hueSetpoint) {
+  public Command achieveHue(DoubleSupplier hueSetpoint) {
     final double minimumHue = 0.0;
     final double maximumHue = 180.0;
     return
@@ -130,7 +124,7 @@ public class AchieveHueGoal extends SubsystemBase {
     // also stop other devices as needed but not needed in this example
     m_hueController.reset();
     m_currentStateHue = 0.0; // also considered the initial and previous state
-    m_currentStateSignal = m_notRunningSignal;
+    m_currentStateSignal = m_notSeekingGoalSignal;
   }
 
   /**
@@ -141,9 +135,14 @@ public class AchieveHueGoal extends SubsystemBase {
    * 
    * @return Command to interrupt and stop the controller while it's running as a command
    */
-  public Command interrupt() {
+  public final Command interrupt() {
     return
       runOnce(() -> {});
+  }
+
+  public final Command achieveHueDisplay() {
+    return
+      m_robotSignals.setSignal(()-> m_currentStateSignal);
   }
 
   /**

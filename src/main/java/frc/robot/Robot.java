@@ -95,6 +95,7 @@
  * Use of Measure<Time>.
  * Use of sequential and parallel composed command groups to perform tasks.
  * Use of a reusable Moore-Like FSM structure of current state, trigger, new state transitions.
+ * Use of a perpetually running command to accept "goals". Default Command could similarly be used.
  */
 
 /*
@@ -250,12 +251,7 @@ public class Robot extends TimedRobot {
   public void teleopExit() {}
 
   @Override
-  public void testInit() {
-    // Running commands are all cancelled. Default Commands will activate especially the disjoint
-    // test defaults if the disjoint test was prematurely aborted leaving the defaults in place.
-    // That behavior can be changed with more logic if need be - no need for this simple demo.
-    CommandScheduler.getInstance().cancelAll();
-  }
+  public void testInit() {}
 
   @Override
   public void testPeriodic() {}
