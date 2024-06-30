@@ -41,6 +41,7 @@ public class RobotContainer {
   private final MooreLikeFSM m_mooreLikeFSMbottom;
   private final GroupDisjointTest m_groupDisjointTest; // container and creator of all the
                                                        // group/disjoint tests
+  private CommandSchedulerLog schedulerLog = null;
 
   /**
    * Constructor creates most of the subsystems and operator controller bindings
@@ -66,6 +67,8 @@ public class RobotContainer {
     if (logCommands) {
       configureLogging();
     }
+
+    configLog();
   }
 
   /**
@@ -221,10 +224,28 @@ public class RobotContainer {
     return m_groupDisjointTest.m_disjointedSequenceTest;
   }
 
+  public void configLog()
+  {
+    
+      boolean useConsole = false;
+      boolean useDataLog = false;
+      boolean useShuffleBoardLog = false;
+
+      schedulerLog = new CommandSchedulerLog(useConsole, useDataLog, useShuffleBoardLog);
+      schedulerLog.logCommandInitialize();
+      schedulerLog.logCommandInterrupt();
+      schedulerLog.logCommandFinish();
+      schedulerLog.logCommandExecute();  // Generates a lot of output
+
+    m_operatorController.start()
+        .onTrue(schedulerLog.printCommandLog());
+  }
+
   /**
    * Configure Command logging
    */
   private void configureLogging() {
+
     CommandScheduler.getInstance()
         .onCommandInitialize(
             command -> {
@@ -263,14 +284,14 @@ public class RobotContainer {
   }
 
   /**
-   * There are a variety of techniques to run methods periodically and the example implemented in
-   * this code is a very simplistic start of a good possibility.
+   * There are a variety of techniques to run I/O methods periodically and the example implemented
+   * below in this code is a very simplistic start of a good possibility.
    * 
    * It demonstrates running before the scheduler loop to get a consistent set of sensor inputs.
-   * After the scheduler loop completes all periodic outputs that were not put out by commands are
-   * run such as logging, dashboards, and output of goal-oriented subsystems that don't use output
-   * from commands. (If enabled, the scheduler runs its registered subsystem.periodic() first but
-   * only for subsystems.)
+   * After the scheduler loop completes all periodic outputs from subsystems are run such as data
+   * logging and dashboards. (When enabled, the command scheduler runs its registered
+   * subsystem.periodic() first but only for subsystems. Its use was threatened to be deprecated.)
+   * (There is additional related discussion of periodic running in AchieveHueGoal.)
    *
    * There are clever ways to register classes say using a common "SubsystemTeam" class or
    * interface with a "register" method so they are automatically included in a list that can

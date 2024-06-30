@@ -184,7 +184,7 @@ public class RobotSignals {
      * @return Command to apply pattern to LEDs
      */
     public Command setSignalOnce(LEDPattern pattern) {
-      return runOnce(() -> pattern.applyTo(m_view)).ignoringDisable(true).withName("LedSet");
+      return runOnce(() -> pattern.applyTo(m_view)).ignoringDisable(true).withName("LedSetO");
     }
 
     /**
@@ -194,7 +194,7 @@ public class RobotSignals {
      * @return Command to apply pattern to LEDs
      */
     public Command setSignalOnce(LEDPatternSupplier pattern) {
-      return runOnce(() -> pattern.get().applyTo(m_view)).ignoringDisable(true).withName("LedSetS");
+      return runOnce(() -> pattern.get().applyTo(m_view)).ignoringDisable(true).withName("LedSetSO");
     }
   } // End LEDView
 }
