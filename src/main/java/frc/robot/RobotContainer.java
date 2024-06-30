@@ -15,6 +15,8 @@ import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 
+import java.util.stream.Collectors;
+
 import frc.robot.subsystems.AchieveHueGoal;
 import frc.robot.subsystems.GroupDisjointTest;
 import frc.robot.subsystems.HistoryFSM;
@@ -233,7 +235,7 @@ public class RobotContainer {
   {
       final boolean useConsole = false;
       final boolean useDataLog = false;
-      final boolean useShuffleBoardLog = true;
+      final boolean useShuffleBoardLog = false;
 
       if (useConsole || useDataLog || useShuffleBoardLog) {
         schedulerLog = new CommandSchedulerLog(useConsole, useDataLog, useShuffleBoardLog);
@@ -249,7 +251,7 @@ public class RobotContainer {
    */
   private void configureLogging() {
 
-    final boolean useConsole = false;
+    final boolean useConsole = true;
     if (!useConsole) return;
 
     CommandScheduler.getInstance()
@@ -258,7 +260,9 @@ public class RobotContainer {
                 System.out.println(
                     command.getClass().getSimpleName() + " " + command.getName()
                         + " initialized "
-                        + command.getRequirements());
+                        + command.getRequirements().stream().map(key -> key.getClass().getSimpleName())
+                        .collect(Collectors.joining(", ", "{", "}"))
+                        );
             });
 
     CommandScheduler.getInstance()
@@ -266,8 +270,7 @@ public class RobotContainer {
             command -> {
                 System.out.println(
                     command.getClass().getSimpleName() + " " + command.getName()
-                        + " interrupted "
-                        + command.getRequirements());
+                        + " interrupted ");
             });
 
     CommandScheduler.getInstance()
@@ -275,8 +278,7 @@ public class RobotContainer {
             command -> {
                 System.out.println(
                     command.getClass().getSimpleName() + " " + command.getName()
-                        + " finished "
-                        + command.getRequirements());
+                        + " finished ");
             });
 
     CommandScheduler.getInstance()
@@ -284,8 +286,7 @@ public class RobotContainer {
             command -> {
                 System.out.println(
                     command.getClass().getSimpleName() + " " + command.getName()
-                        + " executed "
-                        + command.getRequirements());
+                        + " executed ");
             });
   }
 
