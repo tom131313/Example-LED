@@ -15,8 +15,6 @@ import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 
-import java.util.stream.Collectors;
-
 import frc.robot.subsystems.AchieveHueGoal;
 import frc.robot.subsystems.GroupDisjointTest;
 import frc.robot.subsystems.HistoryFSM;
@@ -29,7 +27,6 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public class RobotContainer {
@@ -65,14 +62,9 @@ public class RobotContainer {
     configureDefaultCommands();
 
     /* There are 10's of thousands of ways to do logging.
-     * Here are a few.
+     * Here are a 3 ways with options in the method.
      */
-
-    // logging device example 1 - 1 way with option in the method
-    configureLogging();
-
-    // logging device example 2 - 3 ways with options in the method
-    configLog();
+    configureCommandLogs();
   }
 
   /**
@@ -231,11 +223,11 @@ public class RobotContainer {
   /**
    * Configure Command logging to Console/Terminal, DataLog, or ShuffleBoard
    */
-  public void configLog()
+  public void configureCommandLogs()
   {
       final boolean useConsole = false;
-      final boolean useDataLog = false;
-      final boolean useShuffleBoardLog = false;
+      final boolean useDataLog = true;
+      final boolean useShuffleBoardLog = true;
 
       if (useConsole || useDataLog || useShuffleBoardLog) {
         schedulerLog = new CommandSchedulerLog(useConsole, useDataLog, useShuffleBoardLog);
@@ -244,50 +236,6 @@ public class RobotContainer {
         schedulerLog.logCommandFinish();
         schedulerLog.logCommandExecute();  // Generates a lot of output        
       }
-  }
-
-  /**
-   * Configure Command logging to the Console/Terminal
-   */
-  private void configureLogging() {
-
-    final boolean useConsole = true;
-    if (!useConsole) return;
-
-    CommandScheduler.getInstance()
-        .onCommandInitialize(
-            command -> {
-                System.out.println(
-                    command.getClass().getSimpleName() + " " + command.getName()
-                        + " initialized "
-                        + command.getRequirements().stream().map(key -> key.getClass().getSimpleName())
-                        .collect(Collectors.joining(", ", "{", "}"))
-                        );
-            });
-
-    CommandScheduler.getInstance()
-        .onCommandInterrupt(
-            command -> {
-                System.out.println(
-                    command.getClass().getSimpleName() + " " + command.getName()
-                        + " interrupted ");
-            });
-
-    CommandScheduler.getInstance()
-        .onCommandFinish(
-            command -> {
-                System.out.println(
-                    command.getClass().getSimpleName() + " " + command.getName()
-                        + " finished ");
-            });
-
-    CommandScheduler.getInstance()
-        .onCommandExecute( // this can generate a lot of events
-            command -> {
-                System.out.println(
-                    command.getClass().getSimpleName() + " " + command.getName()
-                        + " executed ");
-            });
   }
 
   /**

@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class CommandSchedulerLog 
 {
@@ -39,7 +40,7 @@ public class CommandSchedulerLog
      * <p>If ShuffleBoard is recording (start it manually), these events are added to the recording.
      * Convert recording to csv and they show nicely in Excel.
      * 
-     * <p>If using DataLog tool, the recording is via NT so tell NT to send everything to the DataLog.
+     * <p>If using DataLog tool, the recording is via NT so tell NT to send EVERYTHING to the DataLog.
      * Run DataLog tool to retrieve log from roboRIO and convert the log to csv.
      */ 
     CommandSchedulerLog(boolean useConsole, boolean useDataLog, boolean useShuffleBoardLog)
@@ -70,13 +71,18 @@ public class CommandSchedulerLog
             (command) -> 
             {
                 String key = command.getClass().getSimpleName() + "/" + command.getName();
+                String requirements = command.getRequirements().stream()
+                    .map(subsystem -> subsystem.getClass().getSimpleName())
+                    .collect(Collectors.joining(", ", "{", "}"));
 
                 if(useConsole)
-                    System.out.println("Command initialized : " + key);
+                    System.out.println("Command initialized : " + key + " " + requirements);
                 if(useDataLog)
-                    initializeCommandLogEntry.set(key);
+                    initializeCommandLogEntry.set(key + " " + requirements);
                 if(useShuffleBoardLog)
-                    Shuffleboard.addEventMarker("Command initialized", key, EventImportance.kNormal);
+                    Shuffleboard.addEventMarker("Command initialized",
+                        key + " " + requirements,
+                        EventImportance.kNormal);
 
                 currentCommands.put(key, 0);
             }
