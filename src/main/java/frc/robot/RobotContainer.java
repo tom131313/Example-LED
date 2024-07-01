@@ -46,6 +46,11 @@ public class RobotContainer {
    * Constructor creates most of the subsystems and operator controller bindings
    */
   public RobotContainer() {
+    /* There are 10's of thousands of ways to do logging.
+     * Here are 3 ways with options within the method.
+     */
+    configureCommandLogs(); // do early on otherwise log not ready for first commands
+
     final int operatorControllerPort = 0;
     m_operatorController = new CommandXboxController(operatorControllerPort);
     // subsystems
@@ -60,11 +65,6 @@ public class RobotContainer {
     configureBindings();
 
     configureDefaultCommands();
-
-    /* There are 10's of thousands of ways to do logging.
-     * Here are a 3 ways with options in the method.
-     */
-    configureCommandLogs();
   }
 
   /**
@@ -227,14 +227,14 @@ public class RobotContainer {
   {
       final boolean useConsole = false;
       final boolean useDataLog = true;
-      final boolean useShuffleBoardLog = true;
+      final boolean useShuffleBoardLog = false;
 
       if (useConsole || useDataLog || useShuffleBoardLog) {
         schedulerLog = new CommandSchedulerLog(useConsole, useDataLog, useShuffleBoardLog);
         schedulerLog.logCommandInitialize();
         schedulerLog.logCommandInterrupt();
         schedulerLog.logCommandFinish();
-        schedulerLog.logCommandExecute();  // Generates a lot of output        
+        schedulerLog.logCommandExecute();  // Can (optionally) generate a lot of output        
       }
   }
 

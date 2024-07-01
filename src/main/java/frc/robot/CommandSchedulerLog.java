@@ -42,6 +42,8 @@ public class CommandSchedulerLog
      * 
      * <p>If using DataLog tool, the recording is via NT so tell NT to send EVERYTHING to the DataLog.
      * Run DataLog tool to retrieve log from roboRIO and convert the log to csv.
+     * 
+     * <p>Note the comment in execute logging that only the first execute is logged unless changed.
      */ 
     CommandSchedulerLog(boolean useConsole, boolean useDataLog, boolean useShuffleBoardLog)
     {
@@ -50,16 +52,16 @@ public class CommandSchedulerLog
         this.useShuffleBoardLog = useShuffleBoardLog;
 
         // DataLog via NT so establish NT and the connection to DataLog
+        if (useDataLog) {
+            DataLogManager.logNetworkTables(true); // WARNING - this puts all NT to the DataLog
+        }
+
         final String networkTableName = "Team4237";
         nt = NetworkTableInstance.getDefault().getTable(networkTableName);
         initializeCommandLogEntry = nt.getStringTopic("Commands/initialize").getEntry("");
         interruptCommandLogEntry = nt.getStringTopic("Commands/interrupt").getEntry("");
         finishCommandLogEntry = nt.getStringTopic("Commands/finish").getEntry("");
         executeCommandLogEntry = nt.getStringTopic("Commands/execute").getEntry("");        
-
-        if (useDataLog) {
-            DataLogManager.logNetworkTables(true); // WARNING - this puts all NT to the DataLog
-        }
     }
 
     /**
@@ -75,14 +77,16 @@ public class CommandSchedulerLog
                     .map(subsystem -> subsystem.getClass().getSimpleName())
                     .collect(Collectors.joining(", ", "{", "}"));
 
-                if(useConsole)
-                    System.out.println("Command initialized : " + key + " " + requirements);
-                if(useDataLog)
-                    initializeCommandLogEntry.set(key + " " + requirements);
-                if(useShuffleBoardLog)
+                if(useConsole) {
+                    System.out.println("Command initialized : " + key + " " + requirements);                    
+                }
+                if(useDataLog) {
+                    initializeCommandLogEntry.set(key + " " + requirements);                    
+                }
+                if(useShuffleBoardLog) {
                     Shuffleboard.addEventMarker("Command initialized",
-                        key + " " + requirements,
-                        EventImportance.kNormal);
+                        key + " " + requirements, EventImportance.kNormal);                    
+                }
 
                 currentCommands.put(key, 0);
             }
@@ -100,12 +104,15 @@ public class CommandSchedulerLog
                 String key = command.getClass().getSimpleName() + "/" + command.getName();
                 String runs = " after " + currentCommands.getOrDefault(key, 0) + " runs";
 
-                if(useConsole)
-                    System.out.println("Command interrupted : " + key + runs);
-                if(useDataLog) 
-                    interruptCommandLogEntry.set(key + runs);
-                if(useShuffleBoardLog)
-                    Shuffleboard.addEventMarker("Command interrupted", key, EventImportance.kNormal);
+                if(useConsole) {
+                    System.out.println("Command interrupted : " + key + runs);                    
+                }
+                if(useDataLog) {
+                    interruptCommandLogEntry.set(key + runs);                    
+                } 
+                if(useShuffleBoardLog) {
+                    Shuffleboard.addEventMarker("Command interrupted", key, EventImportance.kNormal);                    
+                }
 
                 currentCommands.put(key, 0);
             }
@@ -123,12 +130,15 @@ public class CommandSchedulerLog
                 String key = command.getClass().getSimpleName() + "/" + command.getName();
                 String runs = " after " + currentCommands.getOrDefault(key, 0) + " runs";
 
-                if(useConsole)
-                    System.out.println("Command finished : " + key + runs);
-                if(useDataLog) 
-                    finishCommandLogEntry.set(key + runs);
-                if(useShuffleBoardLog)
-                    Shuffleboard.addEventMarker("Command finished", key, EventImportance.kNormal);
+                if(useConsole) {
+                    System.out.println("Command finished : " + key + runs);                    
+                }
+                if(useDataLog) {
+                    finishCommandLogEntry.set(key + runs);                    
+                } 
+                if(useShuffleBoardLog) {
+                    Shuffleboard.addEventMarker("Command finished", key, EventImportance.kNormal);                    
+                }
 
                 currentCommands.put(key, 0);
             }
@@ -136,7 +146,12 @@ public class CommandSchedulerLog
     }
 
     /**
-     * Log commands that run the execute method. This can generate a lot of events.
+     * Log commands that run the execute() method.
+     * 
+     * <p>This can generate a lot of events so logging is suppressed except for the first
+     * occurrence of execute(). Total count of execute() is logged at command end.
+     * 
+     * <p>Recompile without the if/else to get all execute() logged.
      */
     public void logCommandExecute()
     {
@@ -145,18 +160,22 @@ public class CommandSchedulerLog
             {
                 String key = command.getClass().getSimpleName() + "/" + command.getName();
 
-                if(currentCommands.getOrDefault(key, 0) == 0)
+                if(currentCommands.getOrDefault(key, 0) == 0) // suppress all but first execute
                 {
-                    if(useConsole)
-                        System.out.println("Command executed : " + key);
-                    if(useDataLog) 
-                        executeCommandLogEntry.set(key);
-                    if(useShuffleBoardLog)
-                        Shuffleboard.addEventMarker("Command executed", key, EventImportance.kNormal);
+                    if(useConsole) {
+                        System.out.println("Command executed : " + key);                        
+                    }
+                    if(useDataLog) {
+                        executeCommandLogEntry.set(key);             
+                    }
+                    if(useShuffleBoardLog) {
+                        Shuffleboard.addEventMarker("Command executed", key, EventImportance.kNormal);                        
+                    }
 
-                    currentCommands.put(key, 1);
+                    currentCommands.put(key, 1); // first time through count is 1
                 }
                 else
+                    // Increment total count to log when the command ends.
                     currentCommands.put(key, currentCommands.get(key) + 1);
             }
         );
