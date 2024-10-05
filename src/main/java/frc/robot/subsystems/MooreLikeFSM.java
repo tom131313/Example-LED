@@ -32,13 +32,13 @@ public class MooreLikeFSM extends SubsystemBase {
    * Eight state FSM for the eight lights in the Knight Rider Kitt Scanner
    */ 
   private enum State
-    {MyState1, MyState2, MyState3, MyState4, MyState5, MyState6, MyState7, MyState8};
+    {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8};
 
   // Since triggering is based on the clock the initial state is not fully relevant
   // because we have to wait for the clock to roll around to the right time and then it
   // triggers the state following the initial state. Too simple to work exactly as you might
   // expect but it's set so fast you might not notice it's not "right".
-  private State m_initialState = State.MyState1;
+  private State m_initialState = State.Light1;
   private State m_currentState = m_initialState;
 
   /**
@@ -52,7 +52,39 @@ public class MooreLikeFSM extends SubsystemBase {
     m_robotSignals = robotSignals;
     m_periodFactor = periodFactor;
     m_color = color;
-    bindTriggers();
+    createTransitions();
+  }
+
+  /**
+   * Activate all Transitions for this FSM through the use of triggers.
+   * 
+   * Trigger stores the triggering event (clock value), current state and next state (Command) - that's a transition.
+   * 
+   * The transition is defined as event + current_state => next_state
+   * 
+   * Generally Triggers can be "public" but these are dedicated to this FSM and there is no
+   * intention of allowing outside use of them as that can disrupt the proper function of the FSM.
+   * 
+   * There may be potential optimizations. The triggers for this FSM could be in their own
+   * EventLoop and polled only when the subsystem is activated. If an event is unique to a
+   * transition the check for the current state would not be necessary.
+   */
+  private void createTransitions()
+  {
+    /*Light1Period0ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0).and(()-> m_currentState == State.Light1).onTrue(activateLight2());
+    /*Light2Period1ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1).and(()-> m_currentState == State.Light2).onTrue(activateLight3());
+    /*Light3Period2ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2).and(()-> m_currentState == State.Light3).onTrue(activateLight4());
+    /*Light4Period3ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3).and(()-> m_currentState == State.Light4).onTrue(activateLight5());
+    /*Light5Period4ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4).and(()-> m_currentState == State.Light5).onTrue(activateLight6());
+    /*Light6Period5ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5).and(()-> m_currentState == State.Light6).onTrue(activateLight7());
+    /*Light7Period6ToLight8*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6).and(()-> m_currentState == State.Light7).onTrue(activateLight8());
+    /*Light8Period7ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7).and(()-> m_currentState == State.Light8).onTrue(activateLight7());
+    /*Light7Period8ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8).and(()-> m_currentState == State.Light7).onTrue(activateLight6());
+    /*Light6Period9ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9).and(()-> m_currentState == State.Light6).onTrue(activateLight5());
+    /*Light5Period10ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10).and(()-> m_currentState == State.Light5).onTrue(activateLight4());
+    /*Light4Period11ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11).and(()-> m_currentState == State.Light4).onTrue(activateLight3());
+    /*Light3Period12ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12).and(()-> m_currentState == State.Light3).onTrue(activateLight2());
+    /*Light2Period13ToLight1*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13).and(()-> m_currentState == State.Light2).onTrue(activateLight1());
   }
 
   /**
@@ -72,158 +104,76 @@ public class MooreLikeFSM extends SubsystemBase {
    * @return Command that records its state name and turns on the correct LED
    */
 
-  private final Command scanner1() {
+  private final Command activateLight1() {
     return
-      defineState(State.MyState1,
+      defineState(State.Light1,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(0, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
 
-  private final Command scanner2() {
+  private final Command activateLight2() {
     return
-      defineState(State.MyState2,
+      defineState(State.Light2,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(1, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
 
-  private final Command scanner3() {
+  private final Command activateLight3() {
     return
-      defineState(State.MyState3,      
+      defineState(State.Light3,      
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(2, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
 
-  private final Command scanner4() {
+  private final Command activateLight4() {
     return
-      defineState(State.MyState4,
+      defineState(State.Light4,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(3, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
 
-  private final Command scanner5() {
+  private final Command activateLight5() {
     return
-      defineState(State.MyState5,
+      defineState(State.Light5,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(4, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
 
-  private final Command scanner6() {
+  private final Command activateLight6() {
     return
-      defineState(State.MyState6,
+      defineState(State.Light6,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(5, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
     }
 
-  private final Command scanner7() {
+  private final Command activateLight7() {
     return
-      defineState(State.MyState7,
+      defineState(State.Light7,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(6, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
   }
 
-  private final Command scanner8() {
+  private final Command activateLight8() {
     return
-      defineState(State.MyState8,
+      defineState(State.Light8,
         ()->{
             LEDPattern currentStateSignal = oneLEDSmeared(7, m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
       });
-  }
-
-  /**
-   * Transitions for this FSM are defined as a Trigger that checks the current state value AND the
-   * clock value to trigger the next-state-defining Command.
-   * 
-   * Trigger is created here with the current_state and triggering event. The next_state command
-   * is added later.
-   * 
-   * Generally Triggers can be "public" but these are dedicated to this FSM and there is no
-   * intention of allowing outside use of them as that can disrupt the proper function of the FSM.
-   * 
-   * There may be potential optimizations. The triggers for this FSM could be in their own
-   * EventLoop and polled only when the subsystem is activated. If an event is unique to a
-   * transition the check for the current state would not be necessary.
-   */
-
-  private final Trigger m_exitScanner1Period0 = new Trigger(
-      ()-> m_currentState == State.MyState1 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0);
-
-  private final Trigger m_exitScanner2Period1 = new Trigger(
-      ()-> m_currentState == State.MyState2 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1);
-
-  private final Trigger m_exitScanner3Period2 = new Trigger(
-      ()-> m_currentState == State.MyState3 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2);
-
-  private final Trigger m_exitScanner4Period3 = new Trigger(
-      ()-> m_currentState == State.MyState4 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3);
-
-  private final Trigger m_exitScanner5Period4 = new Trigger(
-      ()-> m_currentState == State.MyState5 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4);
-
-  private final Trigger m_exitScanner6Period5 = new Trigger(
-      ()-> m_currentState == State.MyState6 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5);
-
-  private final Trigger m_exitScanner7Period6 = new Trigger(
-      ()-> m_currentState == State.MyState7 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6);
-
-  private final Trigger m_exitScanner8Period7 = new Trigger(
-      ()-> m_currentState == State.MyState8 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7);
-
-  private final Trigger m_exitScanner7Period8 = new Trigger(
-      ()-> m_currentState == State.MyState7 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8);
-
-  private final Trigger m_exitScanner6Period9 = new Trigger(
-      ()-> m_currentState == State.MyState6 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9);
-
-  private final Trigger m_exitScanner5Period10 = new Trigger(
-      ()-> m_currentState == State.MyState5 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10);
-
-  private final Trigger m_exitScanner4Period11 = new Trigger(
-      ()-> m_currentState == State.MyState4 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11);
-
-  private final Trigger m_exitScanner3Period12 = new Trigger(
-      ()-> m_currentState == State.MyState3 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12);
-
-  private final Trigger m_exitScanner2Period13 = new Trigger(
-      ()-> m_currentState == State.MyState2 && (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13);
-
-  /**
-   * Activate all Triggers
-   * 
-   * Trigger has current state and triggering event from above. Add the next_state to it and that
-   * activates the trigger in its event loop.
-   * 
-   * The transition is now completely defined as current_state + event => next_state
-   */
-  private final void bindTriggers() {
-    m_exitScanner1Period0.onTrue(scanner2());
-    m_exitScanner2Period1.onTrue(scanner3());
-    m_exitScanner3Period2.onTrue(scanner4());
-    m_exitScanner4Period3.onTrue(scanner5());
-    m_exitScanner5Period4.onTrue(scanner6());
-    m_exitScanner6Period5.onTrue(scanner7());
-    m_exitScanner7Period6.onTrue(scanner8());
-    m_exitScanner8Period7.onTrue(scanner7());
-    m_exitScanner7Period8.onTrue(scanner6());
-    m_exitScanner6Period9.onTrue(scanner5());
-    m_exitScanner5Period10.onTrue(scanner4());
-    m_exitScanner4Period11.onTrue(scanner3());
-    m_exitScanner3Period12.onTrue(scanner2());
-    m_exitScanner2Period13.onTrue(scanner1());
   }
 
   /**
