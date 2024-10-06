@@ -71,121 +71,49 @@ public class MooreLikeFSM extends SubsystemBase {
    */
   private void createTransitions()
   {
-    /*Light1Period0ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0).and(()-> m_currentState == State.Light1).onTrue(activateLight2());
-    /*Light2Period1ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1).and(()-> m_currentState == State.Light2).onTrue(activateLight3());
-    /*Light3Period2ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2).and(()-> m_currentState == State.Light3).onTrue(activateLight4());
-    /*Light4Period3ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3).and(()-> m_currentState == State.Light4).onTrue(activateLight5());
-    /*Light5Period4ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4).and(()-> m_currentState == State.Light5).onTrue(activateLight6());
-    /*Light6Period5ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5).and(()-> m_currentState == State.Light6).onTrue(activateLight7());
-    /*Light7Period6ToLight8*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6).and(()-> m_currentState == State.Light7).onTrue(activateLight8());
-    /*Light8Period7ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7).and(()-> m_currentState == State.Light8).onTrue(activateLight7());
-    /*Light7Period8ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8).and(()-> m_currentState == State.Light7).onTrue(activateLight6());
-    /*Light6Period9ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9).and(()-> m_currentState == State.Light6).onTrue(activateLight5());
-    /*Light5Period10ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10).and(()-> m_currentState == State.Light5).onTrue(activateLight4());
-    /*Light4Period11ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11).and(()-> m_currentState == State.Light4).onTrue(activateLight3());
-    /*Light3Period12ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12).and(()-> m_currentState == State.Light3).onTrue(activateLight2());
-    /*Light2Period13ToLight1*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13).and(()-> m_currentState == State.Light2).onTrue(activateLight1());
+    /*Light1Period0ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0).and(()-> m_currentState == State.Light1).onTrue(activateLight(2));
+    /*Light2Period1ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1).and(()-> m_currentState == State.Light2).onTrue(activateLight(3));
+    /*Light3Period2ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2).and(()-> m_currentState == State.Light3).onTrue(activateLight(4));
+    /*Light4Period3ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3).and(()-> m_currentState == State.Light4).onTrue(activateLight(5));
+    /*Light5Period4ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4).and(()-> m_currentState == State.Light5).onTrue(activateLight(6));
+    /*Light6Period5ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5).and(()-> m_currentState == State.Light6).onTrue(activateLight(7));
+    /*Light7Period6ToLight8*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6).and(()-> m_currentState == State.Light7).onTrue(activateLight(8));
+    /*Light8Period7ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7).and(()-> m_currentState == State.Light8).onTrue(activateLight(7));
+    /*Light7Period8ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8).and(()-> m_currentState == State.Light7).onTrue(activateLight(6));
+    /*Light6Period9ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9).and(()-> m_currentState == State.Light6).onTrue(activateLight(5));
+    /*Light5Period10ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10).and(()-> m_currentState == State.Light5).onTrue(activateLight(4));
+    /*Light4Period11ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11).and(()-> m_currentState == State.Light4).onTrue(activateLight(3));
+    /*Light3Period12ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12).and(()-> m_currentState == State.Light3).onTrue(activateLight(2));
+    /*Light2Period13ToLight1*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13).and(()-> m_currentState == State.Light2).onTrue(activateLight(1));
   }
 
   /**
-   * These commands (factories) define the states.
+   * Factory for commands that turn on the correct LED every iteration until interrupted by a new time period.
    * 
-   * <p>They can't be put into the State enum because
-   * enums are static and these commands in general are non-static especially with the automatic
+   * <p>Commands can't be put into the State enum because
+   * enums are static and these commands in general are non-static especially with the
    * "this" subsystem requirement.
    * 
-   * <p>Generally Command factories can be "public" but these are dedicated to this FSM and there is
-   * no intention of allowing outside use of them as that can disrupt the proper function of the
+   * <p>Generally Command factories can be "public" but this is dedicated to this FSM and there is
+   * no intention of allowing outside use of it as that can disrupt the proper function of the
    * FSM.
    * 
-   * <p>The states have to record their "currentState" for use in the transition since there is no
-   * other good way to get automatically the current state.
-   * 
-   * @return Command that records its state name and turns on the correct LED
+   * @param light the light number
+   * @return the command to run that defines the state - turns on the correct LED
    */
-
-  private final Command activateLight1() {
-    return
-      defineState(State.Light1,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(0, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  private final Command activateLight2() {
-    return
-      defineState(State.Light2,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(1, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  private final Command activateLight3() {
-    return
-      defineState(State.Light3,      
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(2, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  private final Command activateLight4() {
-    return
-      defineState(State.Light4,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(3, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  private final Command activateLight5() {
-    return
-      defineState(State.Light5,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(4, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  private final Command activateLight6() {
-    return
-      defineState(State.Light6,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(5, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-    }
-
-  private final Command activateLight7() {
-    return
-      defineState(State.Light7,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(6, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  private final Command activateLight8() {
-    return
-      defineState(State.Light8,
-        ()->{
-            LEDPattern currentStateSignal = oneLEDSmeared(7, m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-      });
-  }
-
-  /**
-   * Constructs a command that sets the current state and runs an action every iteration until interrupted.
-   *
-   * @param state State associated with the command as the current state
-   * @param run the action to run every iteration
-   * @return the command to run that defines the state
-   */
-  private final Command defineState(State state, Runnable run) {
+  private final Command activateLight(int light) {
+    // The state has to record its "currentState" for use in the transition since there is no
+    // other good way to get automatically the current state.
+    State state = State.valueOf("Light" + light);
     return new FunctionalCommand(
-        () -> m_currentState = state, run, interrupted -> {}, () -> false, this)
+        () -> m_currentState = state,
+        () -> {
+                LEDPattern currentStateSignal = oneLEDSmeared(light, m_color, Color.kBlack);
+                m_robotSignals.setSignal(currentStateSignal).schedule();
+              },
+        interrupted -> {},
+        () -> false,
+        this)
         .withName("Moore-Like " + m_color + " " + state);
   }
 
@@ -201,7 +129,8 @@ public class MooreLikeFSM extends SubsystemBase {
    * @param colorBackground color of the off LEDs
    * @return Pattern to apply to the LED view
    */
-  private static final LEDPattern oneLEDSmeared(int index, Color colorForeground, Color colorBackground) {
+  private static final LEDPattern oneLEDSmeared(int light, Color colorForeground, Color colorBackground) {
+    int index = light - 1;
     final int slightlyDim = 180;
     final int dim = 120;
 
