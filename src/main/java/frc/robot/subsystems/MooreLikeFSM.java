@@ -65,26 +65,86 @@ public class MooreLikeFSM extends SubsystemBase {
    * Generally Triggers can be "public" but these are dedicated to this FSM and there is no
    * intention of allowing outside use of them as that can disrupt the proper function of the FSM.
    * 
-   * There may be potential optimizations. The triggers for this FSM could be in their own
-   * EventLoop and polled only when the subsystem is activated. If an event is unique to a
-   * transition the check for the current state would not be necessary.
+   * There may be potential optimizations.
+   * 1. The triggers for this FSM could be in their own EventLoop and polled only when the subsystem is activated.
+   * 2. If an event is unique to a transition, the check for the current state would not be necessary. In this
+   * example none of the checks for the current state are needed because each event is unique. If the events were
+   * not unique such as an event was merely every 14th of a period without further identity, then the current state
+   * (as it is coded herein) would be needed.
    */
   private void createTransitions()
   {
-    /*Light1Period0ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0).and(()-> m_currentState == State.Light1).onTrue(activateLight(2));
-    /*Light2Period1ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1).and(()-> m_currentState == State.Light2).onTrue(activateLight(3));
-    /*Light3Period2ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2).and(()-> m_currentState == State.Light3).onTrue(activateLight(4));
-    /*Light4Period3ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3).and(()-> m_currentState == State.Light4).onTrue(activateLight(5));
-    /*Light5Period4ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4).and(()-> m_currentState == State.Light5).onTrue(activateLight(6));
-    /*Light6Period5ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5).and(()-> m_currentState == State.Light6).onTrue(activateLight(7));
-    /*Light7Period6ToLight8*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6).and(()-> m_currentState == State.Light7).onTrue(activateLight(8));
-    /*Light8Period7ToLight7*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7).and(()-> m_currentState == State.Light8).onTrue(activateLight(7));
-    /*Light7Period8ToLight6*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8).and(()-> m_currentState == State.Light7).onTrue(activateLight(6));
-    /*Light6Period9ToLight5*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9).and(()-> m_currentState == State.Light6).onTrue(activateLight(5));
-    /*Light5Period10ToLight4*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10).and(()-> m_currentState == State.Light5).onTrue(activateLight(4));
-    /*Light4Period11ToLight3*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11).and(()-> m_currentState == State.Light4).onTrue(activateLight(3));
-    /*Light3Period12ToLight2*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12).and(()-> m_currentState == State.Light3).onTrue(activateLight(2));
-    /*Light2Period13ToLight1*/new Trigger(()->(int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13).and(()-> m_currentState == State.Light2).onTrue(activateLight(1));
+    // Each transition is a timed event period AND current state that triggers a command to attain the correct next state
+
+    /*Light1Period0ToLight2*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
+      .and(()-> m_currentState == State.Light1)
+      .onTrue(activateLight(2));
+    
+    /*Light2Period1ToLight3*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1)
+      .and(()-> m_currentState == State.Light2)
+      .onTrue(activateLight(3));
+    
+    /*Light3Period2ToLight4*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2)
+      .and(()-> m_currentState == State.Light3)
+      .onTrue(activateLight(4));
+    
+    /*Light4Period3ToLight5*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3)
+      .and(()-> m_currentState == State.Light4)
+      .onTrue(activateLight(5));
+    
+    /*Light5Period4ToLight6*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4)
+      .and(()-> m_currentState == State.Light5)
+      .onTrue(activateLight(6));
+    
+    /*Light6Period5ToLight7*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5)
+      .and(()-> m_currentState == State.Light6)
+      .onTrue(activateLight(7));
+    
+    /*Light7Period6ToLight8*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6)
+      .and(()-> m_currentState == State.Light7)
+      .onTrue(activateLight(8));
+    
+    /*Light8Period7ToLight7*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7)
+      .and(()-> m_currentState == State.Light8)
+      .onTrue(activateLight(7));
+    
+    /*Light7Period8ToLight6*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8)
+      .and(()-> m_currentState == State.Light7)
+      .onTrue(activateLight(6));
+    
+    /*Light6Period9ToLight5*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9)
+      .and(()-> m_currentState == State.Light6)
+      .onTrue(activateLight(5));
+    
+    /*Light5Period10ToLight4*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10)
+      .and(()-> m_currentState == State.Light5)
+      .onTrue(activateLight(4));
+    
+    /*Light4Period11ToLight3*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11)
+      .and(()-> m_currentState == State.Light4)
+      .onTrue(activateLight(3));
+    
+    /*Light3Period12ToLight2*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12)
+      .and(()-> m_currentState == State.Light3)
+      .onTrue(activateLight(2));
+    
+    /*Light2Period13ToLight1*/ new Trigger(() ->
+      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
+      .and(()-> m_currentState == State.Light2)
+      .onTrue(activateLight(1));
   }
 
   /**
