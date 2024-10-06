@@ -191,8 +191,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousSignal;
   private Command m_disjointedSequenceTests;
 
-  @Override
-  public void robotInit() {
+  public Robot() {
     m_robotContainer = new RobotContainer();
   }
 
