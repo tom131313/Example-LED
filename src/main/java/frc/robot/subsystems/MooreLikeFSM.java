@@ -5,6 +5,7 @@ import frc.robot.Color;
 import frc.robot.LEDPattern;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -20,11 +21,27 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * 
  * The triggers are 1/10 second clock divided into 14 bins for 14 triggers needed for this example
  * of the Knight Rider Kitt Scanner.
+ * 
+ * The FSM starts immediately without need of triggering.
+ * 
+ * The FSM has no end or off state; it keeps on flashing.
+ * 
+ * 
+ * This Moore-Like FSM is initially disabled and defines an Initial State when the FSM is enabled.
+ * 
+ * Each state is composed of a State Entry Action, "Steady-State" Action and State Exit Action.
+ * 
+ * Each state waits for a transition requiring the state to exit.
+ * 
+ * A Transition from State to State is defined as the Current State + Trigger Condition yields Next State.
+ * 
+ * This FSM does not demonstrate an End State. That is available by defining a State (and trigger
+ * condition to get to that state) that ends, in some manner, the FSM.
  */
 public class MooreLikeFSM extends SubsystemBase {
 
   private final LEDView m_robotSignals; // LED view where the output is displayed
-  private double m_periodFactor = 10.0; // changeable speed of the scanner; Trigger lambda throws uninitialized error if final and not set here.
+  private double m_periodFactor; // changeable speed of the scanner
   private final Color m_color; // changeable color of the scanner
   private final double m_numberPeriods = 14.0; // number of periods or time bins to generate time-based triggers
 
@@ -34,12 +51,8 @@ public class MooreLikeFSM extends SubsystemBase {
   private enum State
     {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8};
 
-  // Since triggering is based on the clock the initial state is not fully relevant
-  // because we have to wait for the clock to roll around to the right time and then it
-  // triggers the state following the initial state. Too simple to work exactly as you might
-  // expect but it's set so fast you might not notice it's not "right".
   private State m_initialState = State.Light1;
-  private State m_currentState = m_initialState;
+  private State m_currentState;
 
   /**
    * A Moore-Like FSM to display lights similar to the Knight Rider Kitt Scanner
@@ -74,77 +87,81 @@ public class MooreLikeFSM extends SubsystemBase {
    */
   private void createTransitions()
   {
-    // Each transition is a timed event period AND current state that triggers a command to attain the correct next state
+    // Each transition is a timed event period AND current state that triggers a command to attain the next state
+
+    /*NotActiveToInitialState*/ activateLight(m_initialState).schedule(); // activate FSM immediately - don't wait for a trigger
 
     /*Light1Period0ToLight2*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
       .and(()-> m_currentState == State.Light1)
-      .onTrue(activateLight(2));
+      .onTrue(activateLight(State.Light2));
     
     /*Light2Period1ToLight3*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1)
       .and(()-> m_currentState == State.Light2)
-      .onTrue(activateLight(3));
+      .onTrue(activateLight(State.Light3));
     
     /*Light3Period2ToLight4*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2)
       .and(()-> m_currentState == State.Light3)
-      .onTrue(activateLight(4));
+      .onTrue(activateLight(State.Light4));
     
     /*Light4Period3ToLight5*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3)
       .and(()-> m_currentState == State.Light4)
-      .onTrue(activateLight(5));
+      .onTrue(activateLight(State.Light5));
     
     /*Light5Period4ToLight6*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4)
       .and(()-> m_currentState == State.Light5)
-      .onTrue(activateLight(6));
+      .onTrue(activateLight(State.Light6));
     
     /*Light6Period5ToLight7*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5)
       .and(()-> m_currentState == State.Light6)
-      .onTrue(activateLight(7));
+      .onTrue(activateLight(State.Light7));
     
     /*Light7Period6ToLight8*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6)
       .and(()-> m_currentState == State.Light7)
-      .onTrue(activateLight(8));
+      .onTrue(activateLight(State.Light8));
     
     /*Light8Period7ToLight7*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7)
       .and(()-> m_currentState == State.Light8)
-      .onTrue(activateLight(7));
+      .onTrue(activateLight(State.Light7));
     
     /*Light7Period8ToLight6*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8)
       .and(()-> m_currentState == State.Light7)
-      .onTrue(activateLight(6));
+      .onTrue(activateLight(State.Light6));
     
     /*Light6Period9ToLight5*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9)
       .and(()-> m_currentState == State.Light6)
-      .onTrue(activateLight(5));
+      .onTrue(activateLight(State.Light5));
     
     /*Light5Period10ToLight4*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10)
       .and(()-> m_currentState == State.Light5)
-      .onTrue(activateLight(4));
+      .onTrue(activateLight(State.Light4));
     
     /*Light4Period11ToLight3*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11)
       .and(()-> m_currentState == State.Light4)
-      .onTrue(activateLight(3));
+      .onTrue(activateLight(State.Light3));
     
     /*Light3Period12ToLight2*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12)
       .and(()-> m_currentState == State.Light3)
-      .onTrue(activateLight(2));
+      .onTrue(activateLight(State.Light2));
     
     /*Light2Period13ToLight1*/ new Trigger(() ->
       (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
       .and(()-> m_currentState == State.Light2)
-      .onTrue(activateLight(1));
+      .onTrue(activateLight(State.Light1));
+
+    // There is no final, end, or off state defined so no trigger for it; this just keeps flashing
   }
 
   /**
@@ -161,20 +178,30 @@ public class MooreLikeFSM extends SubsystemBase {
    * @param light the light number
    * @return the command to run that defines the state - turns on the correct LED
    */
-  private final Command activateLight(int light) {
-    // The state has to record its "currentState" for use in the transition since there is no
-    // other good way to get automatically the current state.
-    State state = State.valueOf("Light" + light);
+  private final Command activateLight(State state) {
     return new FunctionalCommand(
-        () -> m_currentState = state,
-        () -> {
-                LEDPattern currentStateSignal = oneLEDSmeared(light, m_color, Color.kBlack);
-                m_robotSignals.setSignal(currentStateSignal).schedule();
-              },
-        interrupted -> {},
-        () -> false,
+        () ->
+          {
+            m_currentState = state; // The state has to record its "currentState" for use in the
+                                    // transition since there is no other good way to get
+                                    // automatically the current state for the Trigger.
+            SmartDashboard.putString("FSM entry action "+this, state.name());
+          },
+        () ->
+          {
+            LEDPattern currentStateSignal = oneLEDSmeared(state.ordinal(), m_color, Color.kBlack);
+            m_robotSignals.setSignal(currentStateSignal).schedule();
+            SmartDashboard.putString("FSM steady-state action "+this, state.name());
+          },
+        interrupted ->
+          {
+            SmartDashboard.putString("FSM exit action "+this, state.name());
+          },
+        () -> false, // finishing can be only by "external" transitions and not by this indicator
         this)
-        .withName("Moore-Like " + m_color + " " + state);
+        .ignoringDisable(true)
+        .withName("Moore-Like " + m_color + " " + state); // "this" is more precise discriminator
+                                                    // but "m_color" is prettier and likely as good
   }
 
   /**
@@ -190,7 +217,7 @@ public class MooreLikeFSM extends SubsystemBase {
    * @return Pattern to apply to the LED view
    */
   private static final LEDPattern oneLEDSmeared(int light, Color colorForeground, Color colorBackground) {
-    int index = light - 1;
+    int index = light;
     final int slightlyDim = 180;
     final int dim = 120;
 
