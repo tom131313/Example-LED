@@ -42,7 +42,7 @@ public class RobotSignals {
 
   private final AddressableLED m_strip;
   private final AddressableLEDBuffer m_bufferLED;
-  private static int m_length = 0; // length of the buffer - last LED used + 1 for the 0 LED
+  private static int m_length = 0; // length of the buffer - last LED used + 1 for the number 0 LED
 
   public final LEDView m_top;
   public final LEDView m_main;
@@ -54,21 +54,23 @@ public class RobotSignals {
 
   /**
    * Layout by LED number of the single physical buffer into multiple logical views or resources/subsystems.
+   * 
+   * Location of view in buffer - zero-based numbering
    */
   private static enum LEDViewPlacement {
-    TOP(0, 7),
-    MAIN(8, 15),
-    ENABLEDISABLE(16, 23),
-    HISTORYDEMO(24, 31),
+    TOP           (0, 7),
+    MAIN          (8, 15),
+    ENABLEDISABLE (16, 23),
+    HISTORYDEMO   (24, 31),
     ACHIEVEHUEGOAL(32, 39),
-    KNIGHTRIDER(40, 47),
-    IMPOSTER(48, 55);
+    KNIGHTRIDER   (40, 47),
+    IMPOSTER      (48, 55);
   
     public int first;
     public int last;
 
     /**
-     * 
+     * Location of view in buffer [zero-based numbering]
      * @param first LED number inclusive
      * @param last LED number inclusive
      */
@@ -76,12 +78,17 @@ public class RobotSignals {
     {
       this.first = first;
       this.last = last;
-      m_length = Math.max(m_length, last + 1); // set the length of the buffer (highest LED number + 1 for the 0 LED)
     }
   }
 
   public RobotSignals() {
-    LEDViewPlacement.values(); // any reference to force load and initialize the enum so its "side effect" (m_length) is initialized 
+
+    // find number of LEDs used
+    for(LEDViewPlacement index : LEDViewPlacement.values())
+    {
+      m_length = Math.max(m_length, index.last + 1); // position is zero-based; + 1 for length
+    }
+
     // start updating the physical LED strip
     final int addressableLedPwmPort = 1;
     m_strip = new AddressableLED(addressableLedPwmPort);
