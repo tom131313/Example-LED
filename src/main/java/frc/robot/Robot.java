@@ -52,8 +52,9 @@
  *  controller runs.
  * 
  * 6. LED set 6 usage MooreLikeFSM LEDView subsystem.
- *  First instance of the Moore Like FSM structured subsystem runs continuously in enabled mode to
- *  display a KnightRider Kitt red LED Scanner.
+ *  First instance of the Moore Like FSM structured subsystem runs continuously (except for a brief
+ *  pause to show the FSM can be deactivated and reactivated) to display a KnightRider Kitt red LED
+ *  Scanner.
  *
  * 7. LED set 7 usage MooreLikeFSM LEDView subsystem.
  *  Second instance of the Moore Like FSM to show it can be instantiated multiple times. Uses a

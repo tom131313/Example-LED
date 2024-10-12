@@ -55,7 +55,11 @@ public class RobotSignals {
   /**
    * Layout by LED number of the single physical buffer into multiple logical views or resources/subsystems.
    * 
-   * Location of view in buffer - zero-based numbering
+   * Location of view in buffer - zero-based buffer numbering.
+   * 
+   * Order doesn't matter.
+   * 
+   * You take your chances with overlapping views.
    */
   private static enum LEDViewPlacement {
     TOP           (0, 7),
@@ -97,13 +101,13 @@ public class RobotSignals {
     m_bufferLED = new AddressableLEDBuffer(m_length); // buffer for all of the LEDs
 
     // create the resources (subsystems) as views of the LED buffer
-    m_top =             new LEDView(LEDViewPlacement.TOP);
-    m_main =            new LEDView(LEDViewPlacement.MAIN);
-    m_enableDisable =   new LEDView(LEDViewPlacement.ENABLEDISABLE);
-    m_historyDemo =     new LEDView(LEDViewPlacement.HISTORYDEMO);
-    m_achieveHueGoal =  new LEDView(LEDViewPlacement.ACHIEVEHUEGOAL);
-    m_knightRider =     new LEDView(LEDViewPlacement.KNIGHTRIDER);
-    m_imposter =        new LEDView(LEDViewPlacement.IMPOSTER);
+    m_top            = new LEDView(LEDViewPlacement.TOP);
+    m_main           = new LEDView(LEDViewPlacement.MAIN);
+    m_enableDisable  = new LEDView(LEDViewPlacement.ENABLEDISABLE);
+    m_historyDemo    = new LEDView(LEDViewPlacement.HISTORYDEMO);
+    m_achieveHueGoal = new LEDView(LEDViewPlacement.ACHIEVEHUEGOAL);
+    m_knightRider    = new LEDView(LEDViewPlacement.KNIGHTRIDER);
+    m_imposter       = new LEDView(LEDViewPlacement.IMPOSTER);
   }
 
   /**

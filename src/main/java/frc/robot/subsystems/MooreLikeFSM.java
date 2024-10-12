@@ -25,21 +25,24 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * The triggers are 1/10 second clock divided into 14 bins for 14 triggers needed for this example
  * of the Knight Rider Kitt Scanner.
  * 
- * The FSM starts immediately without need of triggering.
+ * The scanner runs Disabled and Enabled so the FSM is started immediately with startFSM().
  * 
- * The FSM has no end or off state; it keeps on flashing.
+ * There is a stopFSM() function that is tested 10 seconds after starting and then 4 seconds later
+ * the FSM is restarted and then has no end or off state; it keeps on flashing.
+ *
  * 
- * 
- * This Moore-Like FSM is initially disabled and defines an Initial State when the FSM is enabled.
+ * This Moore-Like FSM is initially inactive and defines an Initial State when the FSM is activated.
  * 
  * Each state is composed of a State Entry Action, "Steady-State" Action and State Exit Action.
  * 
  * Each state waits for a transition requiring the state to exit.
  * 
- * A Transition from State to State is defined as the Current State + Trigger Condition yields Next State.
+ * A Transition from State to State is defined as the Current State + Trigger Condition yields Next
+ * State.
  * 
  * This FSM does not demonstrate an End State. That is available by defining a State (and trigger
- * condition to get to that state) that ends, in some manner, the FSM.
+ * condition to get to that state) that ends the FSM in some manner (although the FSM can be
+ * activated and deactivated).
  */
 public class MooreLikeFSM extends SubsystemBase {
 
@@ -69,9 +72,10 @@ public class MooreLikeFSM extends SubsystemBase {
     m_periodFactor = periodFactor;
     m_color = color;
     createTransitions();
-    startFSM(); // if the FSM doesn't run disabled, then start it in auto or periodic init
+    startFSM(); // This FSM runs also disabled so start it immediately.
+                // If the FSM doesn't run disabled, then start it in auto or periodic init.
 
-    waitSeconds(10.) // test stopFSM and restart functions
+    waitSeconds(10.) // test stopFSM function and then restart
       .andThen(this::stopFSM)
       .andThen(waitSeconds(4.))
       .andThen(this::startFSM)
@@ -82,9 +86,9 @@ public class MooreLikeFSM extends SubsystemBase {
   /**
    * Activate all Transitions for this FSM through the use of triggers.
    * 
-   * Trigger stores the triggering event (clock value), current state and next state (Command) - that's a transition.
+   * Trigger stores the current state, triggering event (clock value), and next state (Command) - that's a transition.
    * 
-   * The transition is defined as event + current_state => next_state
+   * The transition is defined as current_state + event => next_state.
    * 
    * Generally Triggers can be "public" but these are dedicated to this FSM and there is no
    * intention of allowing outside use of them as that can disrupt the proper function of the FSM.
@@ -98,7 +102,8 @@ public class MooreLikeFSM extends SubsystemBase {
    */
   private void createTransitions()
   {
-    // Each transition is the current state to exit AND a timed event period that triggers a command to attain the next state
+    // Each transition is the current state to exit AND a timed event period that together
+    // trigger a command to attain the next state.
 
     /*Light1Period0ToLight2*/ new Trigger(() -> m_currentState == State.Light1)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
@@ -165,7 +170,7 @@ public class MooreLikeFSM extends SubsystemBase {
    */
   public void startFSM()
   {
-    // if the FSM has its own event loop, it could be started here
+    // if the FSM has its own event loop, the loop could be started here
     if(m_currentState == State.Inactive)
     {
       activateLight(m_initialState).schedule();
@@ -177,7 +182,7 @@ public class MooreLikeFSM extends SubsystemBase {
    */
   public void stopFSM()
   {
-    // if the FSM has its own event loop, it could be stopped here
+    // if the FSM has its own event loop, the loop could be stopped here
     m_currentState = State.Inactive;
   }
 
@@ -189,8 +194,7 @@ public class MooreLikeFSM extends SubsystemBase {
    * "this" subsystem requirement.
    * 
    * <p>Generally Command factories can be "public" but this is dedicated to this FSM and there is
-   * no intention of allowing outside use of it as that can disrupt the proper function of the
-   * FSM.
+   * no intention of allowing outside use of it as that can disrupt the proper function of the FSM.
    * 
    * @param state the state to enter
    * @return the command to run that defines the state - turns on the correct LED
@@ -215,7 +219,7 @@ public class MooreLikeFSM extends SubsystemBase {
           {
             SmartDashboard.putString("FSM exit action "+this, state.name());
           },
-        // finishing can be only by this indicator being set "externally" to stop FSM
+        // finishing can be only by this indicator being set "externally" to stop the FSM
         () -> m_currentState == State.Inactive?true:false,
         this)
         .ignoringDisable(true)
