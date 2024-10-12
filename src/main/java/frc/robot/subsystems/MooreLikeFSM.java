@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
+
 import frc.robot.subsystems.RobotSignals.LEDView;
 import frc.robot.Color;
 import frc.robot.LEDPattern;
@@ -7,6 +9,7 @@ import frc.robot.LEDPattern;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -49,10 +52,10 @@ public class MooreLikeFSM extends SubsystemBase {
    * Eight state FSM for the eight lights in the Knight Rider Kitt Scanner
    */ 
   private enum State
-    {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8};
+    {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8, Inactive};
 
-  private State m_initialState = State.Light1;
-  private State m_currentState;
+  private State m_initialState = State.Light1; // when the FSM is turned on - state starts here
+  private State m_currentState = State.Inactive; // FSM isn't running initially
 
   /**
    * A Moore-Like FSM to display lights similar to the Knight Rider Kitt Scanner
@@ -66,6 +69,14 @@ public class MooreLikeFSM extends SubsystemBase {
     m_periodFactor = periodFactor;
     m_color = color;
     createTransitions();
+    startFSM(); // if the FSM doesn't run disabled, then start it in auto or periodic init
+
+    waitSeconds(10.) // test stopFSM and restart functions
+      .andThen(this::stopFSM)
+      .andThen(waitSeconds(4.))
+      .andThen(this::startFSM)
+        .ignoringDisable(true)
+        .schedule();
   }
 
   /**
@@ -87,81 +98,87 @@ public class MooreLikeFSM extends SubsystemBase {
    */
   private void createTransitions()
   {
-    // Each transition is a timed event period AND current state that triggers a command to attain the next state
+    // Each transition is the current state to exit AND a timed event period that triggers a command to attain the next state
 
-    /*NotActiveToInitialState*/ activateLight(m_initialState).schedule(); // activate FSM immediately - don't wait for a trigger
-
-    /*Light1Period0ToLight2*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
-      .and(()-> m_currentState == State.Light1)
+    /*Light1Period0ToLight2*/ new Trigger(() -> m_currentState == State.Light1)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
       .onTrue(activateLight(State.Light2));
     
-    /*Light2Period1ToLight3*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1)
-      .and(()-> m_currentState == State.Light2)
+    /*Light2Period1ToLight3*/ new Trigger(() -> m_currentState == State.Light2)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1)
       .onTrue(activateLight(State.Light3));
     
-    /*Light3Period2ToLight4*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2)
-      .and(()-> m_currentState == State.Light3)
+    /*Light3Period2ToLight4*/ new Trigger(() -> m_currentState == State.Light3)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2)
       .onTrue(activateLight(State.Light4));
     
-    /*Light4Period3ToLight5*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3)
-      .and(()-> m_currentState == State.Light4)
+    /*Light4Period3ToLight5*/ new Trigger(() -> m_currentState == State.Light4)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3)
       .onTrue(activateLight(State.Light5));
     
-    /*Light5Period4ToLight6*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4)
-      .and(()-> m_currentState == State.Light5)
+    /*Light5Period4ToLight6*/ new Trigger(() -> m_currentState == State.Light5)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4)
       .onTrue(activateLight(State.Light6));
     
-    /*Light6Period5ToLight7*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5)
-      .and(()-> m_currentState == State.Light6)
+    /*Light6Period5ToLight7*/ new Trigger(() -> m_currentState == State.Light6)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5)
       .onTrue(activateLight(State.Light7));
     
-    /*Light7Period6ToLight8*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6)
-      .and(()-> m_currentState == State.Light7)
+    /*Light7Period6ToLight8*/ new Trigger(() -> m_currentState == State.Light7)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6)
       .onTrue(activateLight(State.Light8));
     
-    /*Light8Period7ToLight7*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7)
-      .and(()-> m_currentState == State.Light8)
+    /*Light8Period7ToLight7*/ new Trigger(() -> m_currentState == State.Light8)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7)
       .onTrue(activateLight(State.Light7));
     
-    /*Light7Period8ToLight6*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8)
-      .and(()-> m_currentState == State.Light7)
+    /*Light7Period8ToLight6*/ new Trigger(() -> m_currentState == State.Light7)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8)
       .onTrue(activateLight(State.Light6));
     
-    /*Light6Period9ToLight5*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9)
-      .and(()-> m_currentState == State.Light6)
+    /*Light6Period9ToLight5*/ new Trigger(() -> m_currentState == State.Light6)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9)
       .onTrue(activateLight(State.Light5));
     
-    /*Light5Period10ToLight4*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10)
-      .and(()-> m_currentState == State.Light5)
+    /*Light5Period10ToLight4*/ new Trigger(() -> m_currentState == State.Light5)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10)
       .onTrue(activateLight(State.Light4));
     
-    /*Light4Period11ToLight3*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11)
-      .and(()-> m_currentState == State.Light4)
+    /*Light4Period11ToLight3*/ new Trigger(() -> m_currentState == State.Light4)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11)
       .onTrue(activateLight(State.Light3));
     
-    /*Light3Period12ToLight2*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12)
-      .and(()-> m_currentState == State.Light3)
+    /*Light3Period12ToLight2*/ new Trigger(() -> m_currentState == State.Light3)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12)
       .onTrue(activateLight(State.Light2));
     
-    /*Light2Period13ToLight1*/ new Trigger(() ->
-      (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
-      .and(()-> m_currentState == State.Light2)
+    /*Light2Period13ToLight1*/ new Trigger(() -> m_currentState == State.Light2)
+      .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
       .onTrue(activateLight(State.Light1));
 
-    // There is no final, end, or off state defined so no trigger for it; this just keeps flashing
+    // There is no final, end, or off State defined so no trigger to it.
+    // Keep scanning until the FSM is inactivated.
+  }
+
+  /**
+   * Start FSM at the initial state if it isn't running
+   */
+  public void startFSM()
+  {
+    // if the FSM has its own event loop, it could be started here
+    if(m_currentState == State.Inactive)
+    {
+      activateLight(m_initialState).schedule();
+    }
+  }
+
+  /**
+   * Stop FSM immediately regardless of the state
+   */
+  public void stopFSM()
+  {
+    // if the FSM has its own event loop, it could be stopped here
+    m_currentState = State.Inactive;
   }
 
   /**
@@ -175,10 +192,11 @@ public class MooreLikeFSM extends SubsystemBase {
    * no intention of allowing outside use of it as that can disrupt the proper function of the
    * FSM.
    * 
-   * @param light the light number
+   * @param state the state to enter
    * @return the command to run that defines the state - turns on the correct LED
    */
   private final Command activateLight(State state) {
+
     return new FunctionalCommand(
         () ->
           {
@@ -197,7 +215,8 @@ public class MooreLikeFSM extends SubsystemBase {
           {
             SmartDashboard.putString("FSM exit action "+this, state.name());
           },
-        () -> false, // finishing can be only by "external" transitions and not by this indicator
+        // finishing can be only by this indicator being set "externally" to stop FSM
+        () -> m_currentState == State.Inactive?true:false,
         this)
         .ignoringDisable(true)
         .withName("Moore-Like " + m_color + " " + state); // "this" is more precise discriminator
@@ -264,4 +283,5 @@ public class MooreLikeFSM extends SubsystemBase {
    * Run after commands and triggers
    */
   public void runAfterCommands() {}
+
 }
