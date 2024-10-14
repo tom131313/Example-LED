@@ -74,8 +74,7 @@ public final class TriggeredDisjointSequence extends WrapperCommand {
   @Override
   public void end(boolean interrupted) {
     m_command.end(interrupted);
-    m_trigger.setPressed(true); // indicate command ended and the next command is to be
-    // triggered
+    m_trigger.setPressed(true); // indicate command ended and the next command is to be triggered
   }
 
   private Trigger getTrigger() {
