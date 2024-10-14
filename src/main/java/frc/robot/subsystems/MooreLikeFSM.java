@@ -1,12 +1,10 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.wpilibj2.command.Commands.sequence;
 import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
 
 import frc.robot.subsystems.RobotSignals.LEDView;
 import frc.robot.Color;
 import frc.robot.LEDPattern;
-import frc.robot.TriggeredDisjointSequence;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,8 +40,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * State.
  * 
  * This FSM does not demonstrate an End State. That is available by defining a State (and trigger
- * condition to get to that state) that ends the FSM in some manner (although the FSM can be
- * activated and deactivated).
+ * condition to get to that state) that ends the FSM in some manner. (The FSM can be activated and
+ * deactivated with included start/stop methods but an end state is not defined; it just stops.)
  */
 public class MooreLikeFSM extends SubsystemBase {
 
@@ -106,14 +104,6 @@ public class MooreLikeFSM extends SubsystemBase {
     // Each transition is the current state to exit AND a timed event period that together
     // trigger a command to attain the next state.
 
-    // The first states are a simple command.
-    // The last state is a complex command (but functionally identically to the simple command)to
-    // illustrate how complex commands can be used.
-
-    // The complex commands can be run in a sequential group as this example or in a disjoint
-    // sequence (example started but not completed as it is the same as the sequential group
-    // but disjointed by proxy).
-
     /*Light1Period0ToLight2*/ new Trigger(() -> m_currentState == State.Light1)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
       .onTrue(activateLight(State.Light2));
@@ -168,34 +158,10 @@ public class MooreLikeFSM extends SubsystemBase {
     
     /*Light2Period13ToLight1*/ new Trigger(() -> m_currentState == State.Light2)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
-      // .onTrue(activateLight(State.Light1)); // simple command as all the others
-      // .onTrue(DisjointMultiCommandState( // start of complex commands run by proxy disjoint
-      .onTrue(GroupMultiCommandState( // start of complex commands run in a group
-      // essentially identical code to the simple command but it could be more easily extended
-
-        runOnce(() -> // entry action
-          {
-            m_currentState = State.Light1; // The state has to record its "currentState" for use in the
-                                    // transition since there is no other good way to get
-                                    // automatically the current state for the Trigger.
-            SmartDashboard.putString("FSM entry action "+this, State.Light1.name());
-          }).ignoringDisable(true),
-
-        run(() -> // steady-state action
-          {
-            LEDPattern currentStateSignal = oneLEDSmeared(State.Light1.ordinal(), m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
-            SmartDashboard.putString("FSM steady-state action "+this, State.Light1.name());
-          }).ignoringDisable(true),
-
-        runOnce(() -> // exit action
-          {
-            SmartDashboard.putString("FSM exit action "+this, State.Light1.name());
-          }).ignoringDisable(true)
-      ));
+      .onTrue(activateLight(State.Light1));
 
     // There is no final, end, or off State defined so no trigger to it.
-    // Keep scanning until the FSM is inactivated.
+    // Keep scanning until the FSM is deactivated.
   }
 
   /**
@@ -235,6 +201,7 @@ public class MooreLikeFSM extends SubsystemBase {
   private final Command activateLight(State state) {
 
     return new FunctionalCommand(
+      // entry action
         () ->
           {
             m_currentState = state; // The state has to record its "currentState" for use in the
@@ -242,36 +209,33 @@ public class MooreLikeFSM extends SubsystemBase {
                                     // automatically the current state for the Trigger.
             SmartDashboard.putString("FSM entry action "+this, state.name());
           },
+
+      // steady-state action
         () ->
           {
             LEDPattern currentStateSignal = oneLEDSmeared(state.ordinal(), m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
             SmartDashboard.putString("FSM steady-state action "+this, state.name());
           },
+
+      // exit action
         interrupted ->
           {
             SmartDashboard.putString("FSM exit action "+this, state.name());
           },
-        // finishing can be only by this indicator being set "externally" to stop the FSM
+
+      // finish determination
+        // Finishing can be only by this indicator being set "externally" to stop the FSM,
+        // The command runs until interrupted by a subsequent triggered command.
         () -> m_currentState == State.Inactive?true:false,
+
+      // requirement
         this)
         .ignoringDisable(true)
         .withName("Moore-Like " + m_color + " " + state); // "this" is more precise discriminator
-                                                    // but "m_color" is prettier and likely as good
+                                                  // but "m_color" is prettier and likely as good
   }
-  
-  Command GroupMultiCommandState(Command entryAction, Command steadyStateAction, Command exitAction)
-  {
-    return
-      sequence(entryAction, steadyStateAction, exitAction);
-  }
-  
-  Command DisjointMultiCommandState(Command entryAction, Command steadyStateAction, Command exitAction)
-  {
-    return
-      TriggeredDisjointSequence.sequence(entryAction, steadyStateAction, exitAction);
-  }
-
+ 
   /**
    * Turn on one bright LED in the string view.
    * Turn on its neighbors dimly. It appears smeared.
