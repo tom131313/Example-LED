@@ -26,7 +26,27 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
+import java.lang.invoke.MethodHandles;
+
 public class RobotContainer {
+  private static final String fullClassName = MethodHandles.lookup().lookupClass().getCanonicalName();
+  static
+  {
+    System.out.println("Loading: " + fullClassName);
+    System.out.println("WPILib version " + edu.wpi.first.wpilibj.util.WPILibVersion.Version);
+  }
+
+  private final boolean useConsole            = false;
+  private final boolean useDataLog            = true;
+  private final boolean useShuffleBoardLog    = false;
+
+  private boolean useAchieveHueGoal           = true;
+  private boolean useGroupDisjointTest       = true;
+  private boolean useHistoryFSM               = true;
+  private boolean useIntake                   = true;
+  private boolean useMooreLikeFSM             = true;
+  private boolean useMooreLikeFSMMultiCommand = true;
+
   private final CommandXboxController m_operatorController;
   // define all the subsystems
   private final RobotSignals m_robotSignals; // container and creator of all the LEDView subsystems
@@ -38,11 +58,14 @@ public class RobotContainer {
   private final GroupDisjointTest m_groupDisjointTest; // container and creator of all the
                                                        // group/disjoint tests
   private CommandSchedulerLog schedulerLog;
+  
+
 
   /**
    * Constructor creates most of the subsystems and operator controller bindings
    */
   public RobotContainer() {
+ 
     /* There are 10's of thousands of ways to do logging.
      * Here are 3 ways with options within the method.
      */
@@ -52,12 +75,14 @@ public class RobotContainer {
     m_operatorController = new CommandXboxController(operatorControllerPort);
     // subsystems
     m_robotSignals = new RobotSignals();
-    m_intake = new Intake(m_robotSignals.m_main);
-    m_historyFSM = new HistoryFSM(m_robotSignals.m_historyDemo);
-    m_achieveHueGoal = new AchieveHueGoal(m_robotSignals.m_achieveHueGoal);
-    m_mooreLikeFSMtop = new MooreLikeFSM(m_robotSignals.m_knightRider, 10.0, Color.kRed);
-    m_mooreLikeFSMbottom = new MooreLikeFSMMultiCommand(m_robotSignals.m_imposter, 9.9, Color.kOrange);
-    m_groupDisjointTest = new GroupDisjointTest();
+
+    // optional subsystems
+    m_intake             = useIntake                   ? new Intake(m_robotSignals.m_main) : null;
+    m_historyFSM         = useHistoryFSM               ? new HistoryFSM(m_robotSignals.m_historyDemo) : null;
+    m_achieveHueGoal     = useAchieveHueGoal           ? new AchieveHueGoal(m_robotSignals.m_achieveHueGoal) : null;
+    m_mooreLikeFSMtop    = useMooreLikeFSM             ? new MooreLikeFSM(m_robotSignals.m_knightRider, 10.0, Color.kRed) : null;
+    m_mooreLikeFSMbottom = useMooreLikeFSMMultiCommand ? new MooreLikeFSMMultiCommand(m_robotSignals.m_imposter, 9.9, Color.kOrange) : null;
+    m_groupDisjointTest  = useGroupDisjointTest        ? new GroupDisjointTest() : null;
 
     configureBindings();
 
@@ -222,10 +247,6 @@ public class RobotContainer {
    */
   public void configureCommandLogs()
   {
-      final boolean useConsole = false;
-      final boolean useDataLog = true;
-      final boolean useShuffleBoardLog = false;
-
       if (useConsole || useDataLog || useShuffleBoardLog) {
         schedulerLog = new CommandSchedulerLog(useConsole, useDataLog, useShuffleBoardLog);
         schedulerLog.logCommandInitialize();

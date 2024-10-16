@@ -44,6 +44,7 @@ public class RobotSignals {
   private final AddressableLEDBuffer m_bufferLED;
   private static int m_length = 0; // length of the buffer - last LED used + 1 for the number 0 LED
 
+  // location in the LED string is defined and reserved for all examples even if not selected to run
   public final LEDView m_top;
   public final LEDView m_main;
   public final LEDView m_enableDisable;
