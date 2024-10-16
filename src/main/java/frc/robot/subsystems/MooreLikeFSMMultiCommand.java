@@ -41,11 +41,12 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * Each of these three actions is a command which can be a complex composed command.
  * 
  * Each steady state waits for a transition requiring the state to exit and transition to the next state.
- * (The trigger to transition can happen at any time as defined in the trigger and the entry action or
- * the steady state action could be running and be interrupted by the transition trigger. The exit action
- * will then run.)
  * 
- * A Transition from State to State is defined as the Current State + Trigger Condition yields current
+ * The trigger to transition can happen at any time as defined in the trigger and the entry action or
+ * the steady state action could be running and be interrupted by the transition trigger. The exit action
+ * will then run which could conceivably be interrupted. Keep the entry and exit commands short-running.
+ * 
+ * A Transition from State to State is defined as the Current State + Trigger Condition runs current
  * state exit command, next state entry command, and then next state steady-state command.
  * 
  * This FSM does not demonstrate an End State. That is available by defining a State (and trigger
@@ -62,6 +63,10 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
 
   /**
    * Eight state FSM for the eight lights in the Knight Rider Kitt Scanner
+   * 
+   * These are not part of the "framework" of the multi-command FSM. These are used as shortcut
+   * sequencing of the multiple identical states of this simple demo. One parametrized command is
+   * defined and then several unique copies are made by using this sequencing State.
    */ 
   private enum State
     {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8, Inactive};
@@ -286,9 +291,6 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
         // entry action
         () ->
           {
-            // m_currentState = state; // The state has to record its "currentState" for use in the
-                                    // transition since there is no other good way to get
-                                    // automatically the current state for the Trigger.
             SmartDashboard.putString("FSM entry action "+this, m_currentState.name());
           })
           .withName(this.getClass().getSimpleName() + " " + m_color + " entry " + state)
@@ -339,17 +341,18 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
   }
 
   /**
-   * Run all the actions of a state
-   * @return
+   * Transition and run all the actions of a state
+   * 
+   * @return Command that runs the sequential state transition commands
    */
-  Command transition(State nextState, Command currentStateExit, Command nextStateEntry, Command nextSteadystate)
+  private Command transition(State nextState, Command currentStateExit, Command nextStateEntry, Command nextSteadystate)
   {
-    // couldn't figure out how to get the m_currentState into activateLightExit
-    // so had to pass it in to transition to pass it to Exit
     return
       sequence(
         currentStateExit, // exit actions of previous state
         runOnce(() -> m_currentState = nextState).ignoringDisable(true), // record new state activated
+                      // must record "currentState" for use in the transition since there is no
+                      // other good way to get automatically the current state for the Trigger.
         nextStateEntry, // entry actions of new state
         nextSteadystate) // steady state actions of new state
       .withName(this.getClass().getSimpleName() + " " + m_color + " transition to " + nextState)
