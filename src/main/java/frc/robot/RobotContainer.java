@@ -16,6 +16,7 @@ import frc.robot.subsystems.GroupDisjointTest;
 import frc.robot.subsystems.HistoryFSM;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.MooreLikeFSM;
+import frc.robot.subsystems.MooreLikeFSMMultiCommand;
 import frc.robot.subsystems.RobotSignals;
 import frc.robot.subsystems.RobotSignals.LEDPatternSupplier;
 
@@ -33,7 +34,7 @@ public class RobotContainer {
   private final HistoryFSM m_historyFSM;
   private final AchieveHueGoal m_achieveHueGoal;
   private final MooreLikeFSM m_mooreLikeFSMtop;
-  private final MooreLikeFSM m_mooreLikeFSMbottom;
+  private final MooreLikeFSMMultiCommand m_mooreLikeFSMbottom;
   private final GroupDisjointTest m_groupDisjointTest; // container and creator of all the
                                                        // group/disjoint tests
   private CommandSchedulerLog schedulerLog;
@@ -55,7 +56,7 @@ public class RobotContainer {
     m_historyFSM = new HistoryFSM(m_robotSignals.m_historyDemo);
     m_achieveHueGoal = new AchieveHueGoal(m_robotSignals.m_achieveHueGoal);
     m_mooreLikeFSMtop = new MooreLikeFSM(m_robotSignals.m_knightRider, 10.0, Color.kRed);
-    m_mooreLikeFSMbottom = new MooreLikeFSM(m_robotSignals.m_imposter, 9.9, Color.kOrange);
+    m_mooreLikeFSMbottom = new MooreLikeFSMMultiCommand(m_robotSignals.m_imposter, 9.9, Color.kOrange);
     m_groupDisjointTest = new GroupDisjointTest();
 
     configureBindings();
