@@ -28,6 +28,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * There is a stopFSM() function that is tested 10 seconds after starting and then 4 seconds later
  * the FSM is restarted and then has no end or off state; it keeps on flashing.
  *
+ * This example is a bit of a cheat. There are several complex states but they are all identical
+ * except for a sequence number. That allows severe compression of code.  Normally a state would
+ * have one Functional Command combining the Entry, Exit, and Steady-state Runnables.
+ * 
  * 
  * This Moore-Like FSM is initially inactive and defines an Initial State when the FSM is activated.
  * 
