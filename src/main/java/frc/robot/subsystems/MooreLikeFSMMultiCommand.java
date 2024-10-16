@@ -42,6 +42,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * condition to get to that state) that ends the FSM in some manner. (The FSM can be activated and
  * deactivated with included start/stop methods but an end state is not defined; it just stops.)
  */
+
+/**
+ * This subsystem is a state and provides for the Mutex of the multiple commands that define the
+ * state such as the commands for the entry action, the commands for the steady-state, and the
+ * commands for the exit action.
+ */
+
+
 public class MooreLikeFSMMultiCommand extends SubsystemBase {
 
   private final LEDView m_robotSignals; // LED view where the output is displayed
@@ -57,7 +65,6 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
 
   private State m_initialState = State.Light1; // when the FSM is turned on - state starts here
   private State m_currentState = State.Inactive; // FSM isn't running initially
-  private FSMstateActions states = new FSMstateActions();
 
   /**
    * A Moore-Like FSM to display lights similar to the Knight Rider Kitt Scanner
@@ -106,59 +113,59 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
 
     /*Light1Period0ToLight2*/ new Trigger(() -> m_currentState == State.Light1)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
-      .onTrue(states.transition(State.Light1, State.Light2));
+      .onTrue(transition(State.Light1, State.Light2));
     
     /*Light2Period1ToLight3*/ new Trigger(() -> m_currentState == State.Light2)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1)
-      .onTrue(states.transition(State.Light2, State.Light3));
+      .onTrue(transition(State.Light2, State.Light3));
     
     /*Light3Period2ToLight4*/ new Trigger(() -> m_currentState == State.Light3)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2)
-      .onTrue(states.transition(State.Light3, State.Light4));
+      .onTrue(transition(State.Light3, State.Light4));
     
     /*Light4Period3ToLight5*/ new Trigger(() -> m_currentState == State.Light4)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3)
-      .onTrue(states.transition(State.Light4, State.Light5));
+      .onTrue(transition(State.Light4, State.Light5));
     
     /*Light5Period4ToLight6*/ new Trigger(() -> m_currentState == State.Light5)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4)
-      .onTrue(states.transition(State.Light5, State.Light6));
+      .onTrue(transition(State.Light5, State.Light6));
     
     /*Light6Period5ToLight7*/ new Trigger(() -> m_currentState == State.Light6)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5)
-      .onTrue(states.transition(State.Light6, State.Light7));
+      .onTrue(transition(State.Light6, State.Light7));
     
     /*Light7Period6ToLight8*/ new Trigger(() -> m_currentState == State.Light7)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6)
-      .onTrue(states.transition(State.Light7, State.Light8));
+      .onTrue(transition(State.Light7, State.Light8));
     
     /*Light8Period7ToLight7*/ new Trigger(() -> m_currentState == State.Light8)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7)
-      .onTrue(states.transition(State.Light8, State.Light7));
+      .onTrue(transition(State.Light8, State.Light7));
     
     /*Light7Period8ToLight6*/ new Trigger(() -> m_currentState == State.Light7)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8)
-      .onTrue(states.transition(State.Light7, State.Light6));
+      .onTrue(transition(State.Light7, State.Light6));
     
     /*Light6Period9ToLight5*/ new Trigger(() -> m_currentState == State.Light6)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9)
-      .onTrue(states.transition(State.Light6, State.Light5));
+      .onTrue(transition(State.Light6, State.Light5));
     
     /*Light5Period10ToLight4*/ new Trigger(() -> m_currentState == State.Light5)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10)
-      .onTrue(states.transition(State.Light5, State.Light4));
+      .onTrue(transition(State.Light5, State.Light4));
     
     /*Light4Period11ToLight3*/ new Trigger(() -> m_currentState == State.Light4)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11)
-      .onTrue(states.transition(State.Light4, State.Light3));
+      .onTrue(transition(State.Light4, State.Light3));
     
     /*Light3Period12ToLight2*/ new Trigger(() -> m_currentState == State.Light3)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12)
-      .onTrue(states.transition(State.Light3, State.Light2));
+      .onTrue(transition(State.Light3, State.Light2));
     
     /*Light2Period13ToLight1*/ new Trigger(() -> m_currentState == State.Light2)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
-      .onTrue(states.transition(State.Light2, State.Light1));
+      .onTrue(transition(State.Light2, State.Light1));
 
     // There is no final, end, or off State defined so no trigger to it.
     // Keep scanning until the FSM is deactivated.
@@ -172,7 +179,7 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
     // if the FSM has its own event loop, the loop could be started here
     if(m_currentState == State.Inactive)
     {
-      states.transition(State.Inactive, m_initialState).schedule();
+      transition(State.Inactive, m_initialState).schedule();
     }
   }
 
@@ -255,18 +262,6 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
   public void runAfterCommands() {}
 
   /**
-   * This subsystem is a state and provides for the Mutex of the multiple commands that define the
-   * state such as the commands for the entry action, the commands for the steady-state, and the
-   * commands for the exit action.
-   * 
-   * This isolates these commands from the commands and triggers that compose the FSM subsystem
-   * because their requirements are different so the interrupt behaviors are separated.
-   */
-    class FSMstateActions extends SubsystemBase
-    {
-      private FSMstateActions(){}
-
-      /**
    * Factory for commands that turn on the correct LED every iteration until interrupted by a new time period.
    * 
    * <p>Commands can't be put into the State enum because
@@ -351,5 +346,4 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
           .withName(this.getClass().getCanonicalName())
           .ignoringDisable(true);
       }
-  }
 }
