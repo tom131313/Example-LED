@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.wpilibj2.command.Commands.none;
 import static edu.wpi.first.wpilibj2.command.Commands.sequence;
 import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
 
@@ -9,6 +10,7 @@ import frc.robot.LEDPattern;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -33,7 +35,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * have three separate Commands for the Entry, Exit, and Steady-state.
  *
  * 
- * This Moore-Like FSM is initially inactive and defines an Initial State when the FSM is activated.
+ * This Moore-Like FSM is initially stopped and defines an Initial State when the FSM is started.
  * 
  * Each state is composed of a State Entry Action, "Steady-State" Action and State Exit Action.
  * 
@@ -76,11 +78,12 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
    * for the unique states are made by using this sequencing State.
    */ 
   private enum State
-    {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8, Inactive};
+    {Light1, Light2, Light3, Light4, Light5, Light6, Light7, Light8};
 
   private State m_initialState; // when the FSM is turned on - state starts here
   private Command m_transitionToInitialState; // when the FSM is turned on - commands for the initial state
-  private State m_currentState = State.Inactive; // FSM isn't running initially
+  private State m_currentState;
+  private boolean m_FSMactive = false;  // FSM isn't running initially
   /**
    * A Moore-Like FSM to display lights similar to the Knight Rider Kitt Scanner
    * 
@@ -123,7 +126,11 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
    */
   private void createTransitions() {
 
-    // FSM off to initial state transition by call to method startFSM()
+    // FSM off to initial state transition used by call to method startFSM()
+    // Don't run any currentStateExit() method that references the current state variable
+    // m_currentState because it is not yet defined. That is, currentStateExit is possible (and
+    // possibly nonsense except as none()) but referencing the current state variable is not
+    // possible.
 
     /*Off to initial state*/
       m_initialState = State.Light1;
@@ -131,65 +138,81 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
 
     // Each transition is the current state to exit AND a timed event period that together
     // trigger a command to attain the next state.
+    // Checking for the FSM being active prevents anything new from starting. (Steady-state command
+    // that is already running must honor the stop when requested.)
 
     /*Light1Period0ToLight2*/ new Trigger(() -> m_currentState == State.Light1)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light2, activateLightExit(State.Light1), activateLightEntry(State.Light2), activateLightSteadystate(State.Light2)));
     
     /*Light2Period1ToLight3*/ new Trigger(() -> m_currentState == State.Light2)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 1)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light3, activateLightExit(State.Light2), activateLightEntry(State.Light3), activateLightSteadystate(State.Light3)));
     
     /*Light3Period2ToLight4*/ new Trigger(() -> m_currentState == State.Light3)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 2)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light4, activateLightExit(State.Light3), activateLightEntry(State.Light4), activateLightSteadystate(State.Light4)));
     
     /*Light4Period3ToLight5*/ new Trigger(() -> m_currentState == State.Light4)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 3)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light5, activateLightExit(State.Light4), activateLightEntry(State.Light5), activateLightSteadystate(State.Light5)));
     
     /*Light5Period4ToLight6*/ new Trigger(() -> m_currentState == State.Light5)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 4)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light6, activateLightExit(State.Light5), activateLightEntry(State.Light6), activateLightSteadystate(State.Light6)));
     
     /*Light6Period5ToLight7*/ new Trigger(() -> m_currentState == State.Light6)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 5)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light7, activateLightExit(State.Light6), activateLightEntry(State.Light7), activateLightSteadystate(State.Light7)));
     
     /*Light7Period6ToLight8*/ new Trigger(() -> m_currentState == State.Light7)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 6)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light8, activateLightExit(State.Light7), activateLightEntry(State.Light8), activateLightSteadystate(State.Light8)));
     
     /*Light8Period7ToLight7*/ new Trigger(() -> m_currentState == State.Light8)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 7)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light7, activateLightExit(State.Light8), activateLightEntry(State.Light7), activateLightSteadystate(State.Light7)));
     
     /*Light7Period8ToLight6*/ new Trigger(() -> m_currentState == State.Light7)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 8)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light6, activateLightExit(State.Light7), activateLightEntry(State.Light6), activateLightSteadystate(State.Light6)));
     
     /*Light6Period9ToLight5*/ new Trigger(() -> m_currentState == State.Light6)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 9)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light5, activateLightExit(State.Light6), activateLightEntry(State.Light5), activateLightSteadystate(State.Light5)));
     
     /*Light5Period10ToLight4*/ new Trigger(() -> m_currentState == State.Light5)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 10)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light4, activateLightExit(State.Light5), activateLightEntry(State.Light4), activateLightSteadystate(State.Light4)));
     
     /*Light4Period11ToLight3*/ new Trigger(() -> m_currentState == State.Light4)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 11)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light3, activateLightExit(State.Light4), activateLightEntry(State.Light3), activateLightSteadystate(State.Light3)));
     
     /*Light3Period12ToLight2*/ new Trigger(() -> m_currentState == State.Light3)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 12)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light2, activateLightExit(State.Light3), activateLightEntry(State.Light2), activateLightSteadystate(State.Light2)));
     
     /*Light2Period13ToLight1*/ new Trigger(() -> m_currentState == State.Light2)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 13)
+      .and(() -> m_FSMactive)
       .onTrue(transition(State.Light1, activateLightExit(State.Light2), activateLightEntry(State.Light1), activateLightSteadystate(State.Light1)));
     
     // There is no final, end, or off State defined for this demo FSM so no trigger to it.
-    // Keep running until the FSM is deactivated.
+    // Keep running until the FSM is turned off by call to method stopFSM().
   }
 
   /**
@@ -197,34 +220,24 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
    */
   public void startFSM()
   {
-     if(m_currentState == State.Inactive)
+     if(!m_FSMactive)
     {
       // if the FSM has its own event loop, the loop could be started here
+      m_FSMactive = true;
       m_transitionToInitialState.schedule();
     } 
   }
 
   /**
-   * Stop FSM immediately regardless of the state
+   * Stop FSM immediately regardless of the state.
+   * This doesn't disable the Triggers being checked and any side-effects being run.
    */
   public void stopFSM()
   {
     // if the FSM has its own event loop, the loop could be stopped here
-    m_currentState = State.Inactive;
+    m_FSMactive = false;
   }
-
-  /**
-   * If a command is required, but there is nothing to do.
-   * It's not marked to run in Disabled so it ends even quicker in Disabled.
-   * 
-   * @return command that immediately does nothing
-   */
-  private Command none()
-  {
-      return
-        runOnce(()->{});
-  }
-  
+ 
   /**
    * Turn on one bright LED in the string view.
    * Turn on its neighbors dimly. It appears smeared.
@@ -327,16 +340,23 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
   private final Command activateLightSteadystate(State state)
   {
     return
-      run(
-        // steady-state action
-        () ->
+      new FunctionalCommand(
+        ()->{},
+
+        () -> // steady-state action
           {
             LEDPattern currentStateSignal = oneLEDSmeared(state.ordinal(), m_color, Color.kBlack);
             m_robotSignals.setSignal(currentStateSignal).schedule();
             SmartDashboard.putString("FSM steady-state action "+this, state.name());
-          })
-          .withName(this.getClass().getSimpleName() + " " + m_color + " steady-state " + state)
-          .ignoringDisable(true);
+          },
+
+        (interrupt)->{},
+
+        () -> m_FSMactive ? false : true // isFinished honors the stop
+
+      )
+      .withName(this.getClass().getSimpleName() + " " + m_color + " steady-state " + state)
+      .ignoringDisable(true);
   }
 
   /**
