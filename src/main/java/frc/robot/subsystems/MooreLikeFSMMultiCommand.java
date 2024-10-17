@@ -9,7 +9,6 @@ import frc.robot.LEDPattern;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -123,12 +122,15 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
    * (as it is coded herein) would be needed.
    */
   private void createTransitions() {
-    // Each transition is the current state to exit AND a timed event period that together
-    // trigger a command to attain the next state.
+
+    // FSM off to initial state transition by call to method startFSM()
 
     /*Off to initial state*/
       m_initialState = State.Light1;
       m_transitionToInitialState = transition(m_initialState, none(), activateLightEntry(m_initialState), activateLightSteadystate(m_initialState));
+
+    // Each transition is the current state to exit AND a timed event period that together
+    // trigger a command to attain the next state.
 
     /*Light1Period0ToLight2*/ new Trigger(() -> m_currentState == State.Light1)
       .and(() -> (int) (Timer.getFPGATimestamp()*m_periodFactor % m_numberPeriods) == 0)
@@ -220,7 +222,7 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
   private Command none()
   {
       return
-        Commands.runOnce(()->{});
+        runOnce(()->{});
   }
   
   /**
@@ -351,7 +353,6 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
         // exit action
         () ->
           {
-            Commands.print("exited active state");
             SmartDashboard.putString("FSM exit action "+this, state.name());
           })
           .withName(this.getClass().getSimpleName() + " " + m_color + " exit " + state)
