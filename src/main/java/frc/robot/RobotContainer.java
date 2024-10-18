@@ -37,10 +37,12 @@ public class RobotContainer {
     System.out.println("WPILib version " + edu.wpi.first.wpilibj.util.WPILibVersion.Version);
   }
 
-  private final boolean useConsole            = false;
-  private final boolean useDataLog            = true;
-  private final boolean useShuffleBoardLog    = false;
+  // options for logging
+  private boolean useConsole            = false;
+  private boolean useDataLog            = true;
+  private boolean useShuffleBoardLog    = false;
 
+  // options to select desired demonstrations
   private boolean useAchieveHueGoal           = true;
   private boolean useGroupDisjointTest        = true;
   private boolean useHistoryFSM               = true;

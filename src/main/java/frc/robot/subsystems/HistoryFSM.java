@@ -148,7 +148,7 @@ public class HistoryFSM extends SubsystemBase {
     // Set and refresh the color could be done many ways.
     // Here it's set once and assumed to persist by some other means than this method.
     // Access to the LEDs is only by command.
-    m_robotSignals.setSignalOnce(m_persistentPatternDemo).withName("History FSM LED").schedule();
+    m_robotSignals.setSignal(m_persistentPatternDemo).withName("History FSM LED").schedule();
     // This subsystem wasn't designed to run in disabled mode. Because of the way the LED subsystem
     // works the last color selected persists in Disabled mode but new colors are not selected.
     // Could check here for that and black out if necessary. Or do something in disabledInit().

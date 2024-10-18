@@ -346,7 +346,7 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
         () -> // steady-state action
           {
             LEDPattern currentStateSignal = oneLEDSmeared(state.ordinal(), m_color, Color.kBlack);
-            m_robotSignals.setSignalOnce(currentStateSignal).schedule();
+            m_robotSignals.setSignal(currentStateSignal).schedule();
             SmartDashboard.putString("FSM steady-state action "+this, state.name());
           },
 
@@ -386,7 +386,7 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
   private Command turnOffAllLights() {
     LEDPattern off = LEDPattern.solid(Color.kBlack);
     return
-      runOnce(() -> m_robotSignals.setSignalOnce(off).schedule())
+      runOnce(() -> m_robotSignals.setSignal(off).schedule())
         .ignoringDisable(true)
         .withName(this.getClass().getSimpleName() + " " + m_color + " FSM off");
   }

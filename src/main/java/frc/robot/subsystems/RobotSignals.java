@@ -156,7 +156,7 @@ public class RobotSignals {
     // Some uses of setSignal refresh the signal in their own looping so provide a single use, too.
 
     /**
-     * Put an LED Pattern into the view - keep running
+     * Put an LED Pattern into the view - keep running.
      *
      * @param pattern
      * @return Command to apply pattern to LEDs
@@ -166,7 +166,7 @@ public class RobotSignals {
     }
 
     /**
-     * Put a dynamic LED Pattern into the view - keep running
+     * Put a dynamic (supplied) LED Pattern into the view - keep running.
      *
      * @param pattern
      * @return Command to apply pattern to LEDs
@@ -176,7 +176,9 @@ public class RobotSignals {
     }
 
     /**
-     * Put an LED Pattern into the view - once
+     * Put an LED Pattern into the view - once.
+     * 
+     * Not recommended and not for animated patterns such as "blink"
      *
      * @param pattern
      * @return Command to apply pattern to LEDs
@@ -186,8 +188,10 @@ public class RobotSignals {
     }
 
     /**
-     * Put a dynamic LED Pattern into the view - once
-     *
+     * Put a dynamic (supplied) LED Pattern into the view - once.
+     * 
+     * Not recommended and not for animated patterns such as "blink"
+     * 
      * @param pattern
      * @return Command to apply pattern to LEDs
      */

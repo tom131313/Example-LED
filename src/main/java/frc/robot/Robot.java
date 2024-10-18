@@ -52,13 +52,13 @@
  *  controller runs.
  * 
  * 6. LED set 6 usage MooreLikeFSM LEDView subsystem.
- *  First instance of the Moore Like FSM structured subsystem runs continuously (except for a brief
- *  pause to show the FSM can be deactivated and reactivated) to display a KnightRider Kitt red LED
- *  Scanner.
+ *  Moore Like FSM structured subsystem runs continuously (except for a brief pause to show the FSM
+ *  can be deactivated and reactivated) to display a KnightRider Kitt red LED Scanner. State is
+ *  implemented as a single command.
  *
- * 7. LED set 7 usage MooreLikeFSM LEDView subsystem.
- *  Second instance of the Moore Like FSM to show it can be instantiated multiple times. Uses a
- *  faster speed and orange color for this Kitt imposter.
+ * 7. LED set 7 usage MooreLikeFSMMultiCommand LEDView subsystem.
+ *  Alternate version of the Moore Like FSM showing use of multiple commands to implement a state.
+ *  Uses a faster speed and orange color for this Kitt imposter.
  *
  * 8. Console Terminal usage GroupDisjoint subsystem.
  *  Disjoint Sequential Group Demo console output initiated by entering teleop enable mode.
