@@ -211,8 +211,8 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
       .and(() -> m_FSMactive)
       .onTrue(transition(State.Light1, activateLightExit(State.Light2), activateLightEntry(State.Light1), activateLightSteadystate(State.Light1)));
     
-    // There is no final, end, or off State defined for this demo FSM so no trigger to it.
-    // Keep running until the FSM is turned off by call to method stopFSM().
+    /*Any and all States off when FSM stopped*/ new Trigger(() -> !m_FSMactive)
+      .whileTrue(turnOffAllLights());
   }
 
   /**
@@ -346,7 +346,7 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
         () -> // steady-state action
           {
             LEDPattern currentStateSignal = oneLEDSmeared(state.ordinal(), m_color, Color.kBlack);
-            m_robotSignals.setSignal(currentStateSignal).schedule();
+            m_robotSignals.setSignalOnce(currentStateSignal).schedule();
             SmartDashboard.putString("FSM steady-state action "+this, state.name());
           },
 
@@ -380,7 +380,19 @@ public class MooreLikeFSMMultiCommand extends SubsystemBase {
   }
 
   /**
-   * Transition and run all the actions of a state
+   * Factory for turn Off all Lights
+   * @return Command to turn all Lights off when FSM not active
+   */
+  private Command turnOffAllLights() {
+    LEDPattern off = LEDPattern.solid(Color.kBlack);
+    return
+      runOnce(() -> m_robotSignals.setSignalOnce(off).schedule())
+        .ignoringDisable(true)
+        .withName(this.getClass().getSimpleName() + " " + m_color + " FSM off");
+  }
+
+  /**
+   * Factory for the Transition and run all the actions of a state
    * 
    * @return Command that runs the sequential state transition commands
    */
