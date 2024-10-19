@@ -59,7 +59,11 @@ public class RobotSignals {
    * Location of view in buffer - zero-based buffer numbering.
    * 
    * Order doesn't matter.
-   * 
+
+   * A view will be reversed if the starting index is after the
+   * ending index; writing front-to-back in the view will write
+   * in the back-to-front direction on the underlying buffer.
+   *
    * You take your chances with overlapping views.
    */
   private static enum LEDViewPlacement {
@@ -76,6 +80,7 @@ public class RobotSignals {
 
     /**
      * Location of view in buffer [zero-based numbering]
+     * 
      * @param first LED number inclusive
      * @param last LED number inclusive
      */
