@@ -6,6 +6,15 @@ package frc.robot.subsystems;
  * <p>This is the creator and container of the LEDView subsystems.
  *
  * <p>Buffer is not cleared.
+ * 
+ * <p>An alternative implementation that deserves consideration for most uses is:
+ *   make the default command "black, off"
+ *   delete the "setSignalOnce" methods since the default off would trigger immediately
+ *   schedule "setSignal" which persists until interrupted
+ * 
+ * <p>Another possibility is only use the default command and supply a differing pattern as desired
+ * for differing signals. That loses the advantages of Command management interrupts, however, since
+ * there is no similar management of LED Patterns.
  */
 
 import frc.robot.AddressableLED;
